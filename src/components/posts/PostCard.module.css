@@ -84,7 +84,7 @@
   gap: 2px;
 }
 
-.grid1 { grid-template-columns: 1fr; max-height: 400px; }
+.grid1 { grid-template-columns: 1fr; max-height: none; }
 .grid2 { grid-template-columns: 1fr 1fr; max-height: 280px; }
 .grid3 { grid-template-columns: 1fr 1fr; max-height: 280px; }
 .grid4 { grid-template-columns: 1fr 1fr; max-height: 280px; }

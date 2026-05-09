@@ -11,6 +11,7 @@ import { createClient } from '@/lib/supabase/client';
 import Avatar from '@/components/ui/Avatar';
 import CommentsSection from '@/components/posts/CommentsSection';
 import CreatePostModal from '@/components/posts/CreatePostModal';
+import ImageModal from '@/components/ui/ImageModal';
 import toast from 'react-hot-toast';
 import styles from './PostCard.module.css';
 
@@ -32,6 +33,7 @@ export default function PostCard({ post, currentProfile, onDeleted, style }: Pos
   const [showReactions, setShowReactions] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const supabase = createClient();
   const isOwner = currentProfile?.id === post.user_id;
 
@@ -168,13 +170,29 @@ export default function PostCard({ post, currentProfile, onDeleted, style }: Pos
       {post.image_urls && post.image_urls.length > 0 && (
         <div className={`${styles.imageGrid} ${styles[`grid${post.image_urls.length}`]}`}>
           {post.image_urls.slice(0, 4).map((url, i) => (
-            <div key={i} className={styles.imageWrapper}>
-              <Image
-                src={url}
-                alt={`Post image ${i + 1}`}
-                fill
-                style={{ objectFit: 'cover' }}
-              />
+            <div 
+              key={i} 
+              className={styles.imageWrapper} 
+              style={{ cursor: 'pointer', ...(post.image_urls!.length === 1 ? { background: 'none' } : {}) }}
+              onClick={() => setSelectedImage(url)}
+            >
+              {post.image_urls!.length === 1 ? (
+                <Image
+                  src={url}
+                  alt={`Post image ${i + 1}`}
+                  width={0}
+                  height={0}
+                  sizes="100vw"
+                  style={{ width: '100%', height: 'auto', maxHeight: '500px', objectFit: 'contain' }}
+                />
+              ) : (
+                <Image
+                  src={url}
+                  alt={`Post image ${i + 1}`}
+                  fill
+                  style={{ objectFit: 'cover' }}
+                />
+              )}
               {i === 3 && post.image_urls!.length > 4 && (
                 <div className={styles.moreImages}>+{post.image_urls!.length - 4}</div>
               )}
@@ -280,6 +298,14 @@ export default function PostCard({ post, currentProfile, onDeleted, style }: Pos
             setIsEditing(false);
             window.location.reload(); // Simple reload to refresh feed/post
           }}
+        />
+      )}
+
+      {/* Image Viewer Modal */}
+      {selectedImage && (
+        <ImageModal
+          imageUrl={selectedImage}
+          onClose={() => setSelectedImage(null)}
         />
       )}
     </article>
