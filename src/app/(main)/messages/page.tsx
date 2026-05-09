@@ -9,6 +9,7 @@ import { vi } from 'date-fns/locale';
 import toast from 'react-hot-toast';
 import styles from './messages.module.css';
 import Image from 'next/image';
+import { usePresence } from '@/store/usePresence';
 
 const EMOJI_QUICK = ['😊', '😂', '❤️', '🔥', '👍', '😭', '🥺', '✨', '🎉', '💯'];
 
@@ -24,7 +25,9 @@ export default function MessagesPage() {
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const channelRef = useRef<any>(null);
   const supabase = createClient();
+  const { isOnline } = usePresence();
 
   useEffect(() => {
     const init = async () => {
@@ -32,13 +35,55 @@ export default function MessagesPage() {
       if (!user) return;
       const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
       setCurrentProfile(profile);
-      await fetchConversations(user.id);
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const targetUsername = urlParams.get('user');
+
+      if (targetUsername) {
+        const { data: targetProfile } = await supabase.from('profiles').select('*').eq('username', targetUsername).single();
+        if (targetProfile && targetProfile.id !== user.id) {
+          const { data: existingConvs } = await supabase.from('conversations')
+            .select('*')
+            .contains('participants', [user.id, targetProfile.id]);
+
+          if (!existingConvs || existingConvs.length === 0) {
+            await supabase.from('conversations').insert({
+              participants: [user.id, targetProfile.id],
+              last_message_at: new Date().toISOString()
+            });
+          }
+        }
+      }
+
+      await fetchConversations(user.id, targetUsername);
     };
     init();
+
+    // Subscribe to conversation updates for the sidebar
+    const convsChannel = supabase
+      .channel('conversations_all')
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'conversations' }, () => {
+        supabase.auth.getUser().then(({ data: { user } }) => {
+          if (user) fetchConversations(user.id);
+        });
+      })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'conversations' }, () => {
+        supabase.auth.getUser().then(({ data: { user } }) => {
+          if (user) fetchConversations(user.id);
+        });
+      })
+      .subscribe();
+
+    return () => {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+      }
+      supabase.removeChannel(convsChannel);
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const fetchConversations = async (userId: string) => {
+  const fetchConversations = async (userId: string, targetUsername?: string | null) => {
     const { data } = await supabase
       .from('conversations')
       .select('*')
@@ -46,6 +91,7 @@ export default function MessagesPage() {
       .order('last_message_at', { ascending: false });
 
     if (data) {
+      let convToSelect = null;
       // Fetch other user profiles
       const enriched = await Promise.all(
         data.map(async (conv) => {
@@ -56,10 +102,19 @@ export default function MessagesPage() {
             .eq('conversation_id', conv.id)
             .eq('read', false)
             .neq('sender_id', userId);
-          return { ...conv, other_user: otherUser, unread_count: unread ?? 0 };
+            
+          const enrichedConv = { ...conv, other_user: otherUser, unread_count: unread ?? 0 };
+          if (targetUsername && otherUser?.username === targetUsername) {
+            convToSelect = enrichedConv;
+          }
+          return enrichedConv;
         })
       );
       setConversations(enriched as any);
+      
+      if (convToSelect) {
+        selectConversation(convToSelect as any);
+      }
     }
     setLoading(false);
   };
@@ -84,6 +139,10 @@ export default function MessagesPage() {
     setSelectedConv(conv);
     await fetchMessages(conv.id);
 
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+    }
+
     // Subscribe to new messages
     const channel = supabase
       .channel(`messages:${conv.id}`)
@@ -91,7 +150,7 @@ export default function MessagesPage() {
         () => fetchMessages(conv.id))
       .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
+    channelRef.current = channel;
   };
 
   useEffect(() => {
@@ -179,7 +238,7 @@ export default function MessagesPage() {
                 onClick={() => selectConversation(conv)}
               >
                 <div style={{ position: 'relative' }}>
-                  <Avatar profile={conv.other_user} size="md" />
+                  <Avatar profile={conv.other_user} size="md" isOnline={isOnline(conv.other_user?.id || '')} />
                   {(conv.unread_count ?? 0) > 0 && (
                     <div className={styles.unreadBadge}>{conv.unread_count}</div>
                   )}
@@ -211,10 +270,18 @@ export default function MessagesPage() {
           <>
             {/* Chat Header */}
             <div className={styles.chatHeader}>
-              <Avatar profile={selectedConv.other_user} size="sm" />
+              <Avatar profile={selectedConv.other_user} size="sm" isOnline={isOnline(selectedConv.other_user?.id || '')} />
               <div>
                 <div className={styles.chatName}>{selectedConv.other_user?.full_name || selectedConv.other_user?.username}</div>
-                <div className={styles.chatHandle}>@{selectedConv.other_user?.username}</div>
+                <div className={styles.chatHandle}>
+                  {isOnline(selectedConv.other_user?.id || '') ? (
+                    <span style={{ color: '#10b981', fontWeight: 500 }}>Đang hoạt động</span>
+                  ) : selectedConv.other_user?.last_seen ? (
+                    <span>Hoạt động {formatDistanceToNow(new Date(selectedConv.other_user.last_seen), { locale: vi })} trước</span>
+                  ) : (
+                    <span>@{selectedConv.other_user?.username}</span>
+                  )}
+                </div>
               </div>
             </div>
 

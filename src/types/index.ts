@@ -5,6 +5,7 @@ export interface Profile {
   bio: string | null;
   avatar_url: string | null;
   website: string | null;
+  last_seen?: string | null;
   created_at: string;
   updated_at: string;
   followers_count?: number;

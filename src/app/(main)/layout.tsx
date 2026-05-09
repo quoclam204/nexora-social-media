@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import Sidebar from '@/components/layout/Sidebar';
 import MobileNav from '@/components/layout/MobileNav';
+import PresenceProvider from '@/components/providers/PresenceProvider';
 import styles from './main.module.css';
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
@@ -17,12 +18,14 @@ export default async function MainLayout({ children }: { children: React.ReactNo
     .single();
 
   return (
-    <div className={styles.layout}>
-      <Sidebar profile={profile} />
-      <main className={styles.main}>
-        {children}
-      </main>
-      <MobileNav profile={profile} />
-    </div>
+    <PresenceProvider>
+      <div className={styles.layout}>
+        <Sidebar profile={profile} />
+        <main className={styles.main}>
+          {children}
+        </main>
+        <MobileNav profile={profile} />
+      </div>
+    </PresenceProvider>
   );
 }

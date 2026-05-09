@@ -17,6 +17,7 @@ create table if not exists public.profiles (
   bio text,
   avatar_url text,
   website text,
+  last_seen timestamptz default now(),
   created_at timestamptz default now() not null,
   updated_at timestamptz default now() not null,
   constraint username_length check (char_length(username) >= 3 and char_length(username) <= 30),
@@ -288,3 +289,14 @@ create policy "Users can upload post media" on storage.objects for insert with c
 
 create policy "Message media viewable by participants" on storage.objects for select using (bucket_id = 'messages' and auth.uid() is not null);
 create policy "Users can upload message media" on storage.objects for insert with check (bucket_id = 'messages' and auth.uid() is not null);
+
+-- ============================================================
+-- REALTIME SUBSCRIPTIONS
+-- ============================================================
+-- Add tables to the realtime publication
+alter publication supabase_realtime add table public.messages;
+alter publication supabase_realtime add table public.conversations;
+alter publication supabase_realtime add table public.notifications;
+
+
+alter table public.profiles add column if not exists last_seen timestamptz default now();
