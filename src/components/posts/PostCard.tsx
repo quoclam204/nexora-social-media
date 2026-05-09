@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -34,8 +34,30 @@ export default function PostCard({ post, currentProfile, onDeleted, style }: Pos
   const [showMenu, setShowMenu] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const supabase = createClient();
   const isOwner = currentProfile?.id === post.user_id;
+
+  useEffect(() => {
+    if (!videoRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting && !videoRef.current?.paused) {
+            videoRef.current?.pause();
+          }
+        });
+      },
+      { threshold: 0.2 } // Trigger when less than 20% of the video is visible
+    );
+
+    observer.observe(videoRef.current);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [post.video_url]);
 
   const requireAuth = () => {
     if (!currentProfile) {
@@ -204,7 +226,12 @@ export default function PostCard({ post, currentProfile, onDeleted, style }: Pos
       {/* Video */}
       {post.video_url && (
         <div className={styles.videoWrapper} style={{ marginTop: 'var(--space-3)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
-          <video src={post.video_url} controls style={{ width: '100%', maxHeight: 400, backgroundColor: '#000' }} />
+          <video 
+            ref={videoRef}
+            src={post.video_url} 
+            controls 
+            style={{ width: '100%', maxHeight: 400, backgroundColor: '#000' }} 
+          />
         </div>
       )}
 
