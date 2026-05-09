@@ -1,0 +1,120 @@
+.wrapper {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-6) var(--space-4);
+  min-height: 100vh;
+}
+
+.container {
+  width: 100%;
+  max-width: 600px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-5);
+  gap: var(--space-3);
+}
+
+.title {
+  font-size: var(--font-2xl);
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: var(--space-1);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  text-decoration: none;
+  transition: background var(--transition-fast);
+  cursor: pointer;
+  position: relative;
+}
+
+.item:hover { background: var(--bg-hover); }
+
+.unread {
+  background: rgba(124, 58, 237, 0.05);
+}
+
+.iconWrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.typeIcon {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  font-size: 14px;
+  background: var(--bg-elevated);
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--bg-surface);
+}
+
+.itemContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.message {
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.message strong { color: var(--text-primary); }
+
+.time {
+  font-size: var(--font-xs);
+  color: var(--text-muted);
+  margin-top: 2px;
+  display: block;
+}
+
+.unreadDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.skeletonItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+}
+
+.empty {
+  text-align: center;
+  padding: var(--space-12) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.empty h3 { font-size: var(--font-xl); font-weight: 700; color: var(--text-primary); }
+.empty p { color: var(--text-muted); font-size: var(--font-sm); max-width: 300px; }

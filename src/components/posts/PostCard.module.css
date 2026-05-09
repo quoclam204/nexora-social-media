@@ -1,0 +1,221 @@
+.post {
+  animation: fadeIn 0.3s ease backwards;
+  position: relative;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: var(--space-5) var(--space-5) 0;
+  gap: var(--space-2);
+}
+
+.authorLink {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  text-decoration: none;
+  flex: 1;
+  min-width: 0;
+}
+
+.authorInfo {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.authorName {
+  font-weight: 600;
+  font-size: var(--font-base);
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color var(--transition-fast);
+}
+
+.authorLink:hover .authorName { color: var(--color-primary-light); }
+
+.authorMeta {
+  font-size: var(--font-xs);
+  color: var(--text-muted);
+}
+
+.privacy { margin-left: 2px; }
+
+.menuBtn {
+  flex-shrink: 0;
+}
+
+.content {
+  padding: var(--space-3) var(--space-5);
+  font-size: var(--font-base);
+  color: var(--text-primary);
+  line-height: 1.65;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.hashtag {
+  color: var(--color-primary-light);
+  font-weight: 500;
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.hashtag:hover {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+/* Image Grid */
+.imageGrid {
+  margin: var(--space-3) var(--space-5);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  display: grid;
+  gap: 2px;
+}
+
+.grid1 { grid-template-columns: 1fr; max-height: 400px; }
+.grid2 { grid-template-columns: 1fr 1fr; max-height: 280px; }
+.grid3 { grid-template-columns: 1fr 1fr; max-height: 280px; }
+.grid4 { grid-template-columns: 1fr 1fr; max-height: 280px; }
+
+.grid3 .imageWrapper:first-child { grid-row: 1 / 2; }
+
+.imageWrapper {
+  position: relative;
+  overflow: hidden;
+  background: var(--bg-elevated);
+  min-height: 120px;
+}
+
+.moreImages {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: var(--font-xl);
+  font-weight: 700;
+}
+
+/* Stats */
+.stats {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-5);
+  font-size: var(--font-xs);
+  color: var(--text-muted);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.statBtn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: var(--font-xs);
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+  transition: color var(--transition-fast);
+}
+
+.statBtn:hover { color: var(--text-secondary); }
+
+/* Actions */
+.actions {
+  display: flex;
+  gap: 0;
+  padding: var(--space-1) var(--space-4);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.actionBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: var(--font-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  flex: 1;
+  justify-content: center;
+}
+
+.actionBtn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.reacted {
+  color: var(--color-primary-light) !important;
+  font-weight: 600;
+}
+
+/* Reaction Picker */
+.reactionWrapper {
+  position: relative;
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.reactionPicker {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-full);
+  padding: var(--space-2) var(--space-3);
+  display: flex;
+  gap: var(--space-1);
+  box-shadow: var(--shadow-lg);
+  z-index: 10;
+  animation: slideInUp 0.15s ease;
+}
+
+@keyframes slideInUp {
+  from { opacity: 0; transform: translateX(-50%) translateY(8px) scale(0.9); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+
+.reactionOption {
+  font-size: 24px;
+  padding: var(--space-1);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  line-height: 1;
+  transition: transform var(--transition-spring);
+}
+
+.reactionOption:hover {
+  transform: scale(1.3) translateY(-4px);
+}
+
+.activeReaction {
+  transform: scale(1.15);
+  background: var(--bg-active);
+  border-radius: var(--radius-sm);
+}
