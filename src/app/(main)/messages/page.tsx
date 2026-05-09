@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Message, Profile, Conversation } from '@/types';
 import Avatar from '@/components/ui/Avatar';
@@ -14,6 +15,7 @@ import { usePresence } from '@/store/usePresence';
 const EMOJI_QUICK = ['😊', '😂', '❤️', '🔥', '👍', '😭', '🥺', '✨', '🎉', '💯'];
 
 export default function MessagesPage() {
+  const router = useRouter();
   const [currentProfile, setCurrentProfile] = useState<Profile | null>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConv, setSelectedConv] = useState<Conversation | null>(null);
@@ -32,7 +34,10 @@ export default function MessagesPage() {
   useEffect(() => {
     const init = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        router.push('/login');
+        return;
+      }
       const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
       setCurrentProfile(profile);
 

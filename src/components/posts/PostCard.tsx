@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { Post, Profile, REACTION_EMOJIS, ReactionType } from '@/types';
@@ -21,6 +22,7 @@ interface PostCardProps {
 }
 
 export default function PostCard({ post, currentProfile, onDeleted, style }: PostCardProps) {
+  const router = useRouter();
   const [reactions, setReactions] = useState(post.reactions_count ?? 0);
   const [userReaction, setUserReaction] = useState<ReactionType | null>(
     (post.user_reaction as ReactionType) ?? null
@@ -33,8 +35,17 @@ export default function PostCard({ post, currentProfile, onDeleted, style }: Pos
   const supabase = createClient();
   const isOwner = currentProfile?.id === post.user_id;
 
+  const requireAuth = () => {
+    if (!currentProfile) {
+      toast.error('Vui lòng đăng nhập để thực hiện');
+      router.push('/login');
+      return false;
+    }
+    return true;
+  };
+
   const handleReact = async (type: ReactionType) => {
-    if (!currentProfile) { toast.error('Vui lòng đăng nhập!'); return; }
+    if (!requireAuth() || !currentProfile) return;
 
     setShowReactions(false);
 

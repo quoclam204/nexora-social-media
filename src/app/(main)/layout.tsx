@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import Sidebar from '@/components/layout/Sidebar';
 import MobileNav from '@/components/layout/MobileNav';
+import RightSidebar from '@/components/layout/RightSidebar';
 import PresenceProvider from '@/components/providers/PresenceProvider';
 import styles from './main.module.css';
 
@@ -9,13 +10,15 @@ export default async function MainLayout({ children }: { children: React.ReactNo
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  if (!user) redirect('/login');
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single();
+  let profile = null;
+  if (user) {
+    const { data } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+    profile = data;
+  }
 
   return (
     <PresenceProvider>
@@ -24,6 +27,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
         <main className={styles.main}>
           {children}
         </main>
+        <RightSidebar />
         <MobileNav profile={profile} />
       </div>
     </PresenceProvider>

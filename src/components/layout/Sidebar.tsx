@@ -42,16 +42,19 @@ export default function Sidebar({ profile }: SidebarProps) {
 
       {/* Navigation */}
       <nav className={styles.nav}>
-        {navItems.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={`${styles.navItem} ${pathname === item.href || pathname.startsWith(item.href + '/') ? styles.active : ''}`}
-          >
-            <span className={styles.navIcon}>{item.icon}</span>
-            <span className={styles.navLabel}>{item.label}</span>
-          </Link>
-        ))}
+        {navItems.map((item) => {
+          if (!profile && (item.href === '/notifications' || item.href === '/messages')) return null;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`${styles.navItem} ${pathname === item.href || pathname.startsWith(item.href + '/') ? styles.active : ''}`}
+            >
+              <span className={styles.navIcon}>{item.icon}</span>
+              <span className={styles.navLabel}>{item.label}</span>
+            </Link>
+          );
+        })}
 
         {profile && (
           <Link
@@ -65,12 +68,14 @@ export default function Sidebar({ profile }: SidebarProps) {
       </nav>
 
       {/* Create Post Button */}
-      <Link href="/feed?create=true" id="btn-create-post-sidebar" className={`btn btn-primary ${styles.createBtn}`}>
-        ✏️ Tạo bài viết
-      </Link>
-
-      {/* User Footer */}
       {profile && (
+        <Link href="/feed?create=true" id="btn-create-post-sidebar" className={`btn btn-primary ${styles.createBtn}`}>
+          ✏️ Tạo bài viết
+        </Link>
+      )}
+
+      {/* User Footer or Login */}
+      {profile ? (
         <div className={styles.userFooter}>
           <Link href={`/profile/${profile.username}`} className={styles.userInfo}>
             <Avatar profile={profile} size="sm" />
@@ -89,6 +94,12 @@ export default function Sidebar({ profile }: SidebarProps) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
           </button>
+        </div>
+      ) : (
+        <div className={styles.userFooter} style={{ justifyContent: 'center' }}>
+          <Link href="/login" className="btn btn-primary w-full">
+            Đăng nhập / Đăng ký
+          </Link>
         </div>
       )}
     </aside>

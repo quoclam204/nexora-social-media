@@ -148,7 +148,9 @@ export default function FeedClient({ currentProfile }: FeedClientProps) {
         </div>
 
         {/* Create Post Box */}
-        <CreatePostBox profile={currentProfile} onOpen={() => setShowModal(true)} />
+        {currentProfile && (
+          <CreatePostBox profile={currentProfile} onOpen={() => setShowModal(true)} />
+        )}
 
         {/* Posts */}
         {loading ? (
@@ -172,9 +174,11 @@ export default function FeedClient({ currentProfile }: FeedClientProps) {
             <div className={styles.emptyIcon}>📭</div>
             <h3>Chưa có bài viết nào</h3>
             <p>{activeTab === 'following' ? 'Hãy theo dõi người dùng để xem bài viết của họ' : 'Hãy là người đầu tiên đăng bài!'}</p>
-            <button className="btn btn-primary" onClick={() => setShowModal(true)}>
-              ✏️ Tạo bài viết đầu tiên
-            </button>
+            {currentProfile && (
+              <button className="btn btn-primary" onClick={() => setShowModal(true)}>
+                ✏️ Tạo bài viết đầu tiên
+              </button>
+            )}
           </div>
         ) : (
           <>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { Comment, Profile } from '@/types';
 import Avatar from '@/components/ui/Avatar';
@@ -188,32 +189,40 @@ export default function CommentsSection({ postId, currentProfile, onCountChange 
   return (
     <div className={styles.section}>
       {/* Comment Input */}
-      <form onSubmit={handleSubmit} className={styles.inputRow}>
-        <Avatar profile={currentProfile} size="sm" />
-        <div className={styles.inputWrapper}>
-          {replyTo && (
-            <div className={styles.replyIndicator}>
-              Đang trả lời <strong>@{replyTo.username}</strong>
-              <button type="button" onClick={() => { setReplyTo(null); setInput(''); }}>×</button>
-            </div>
-          )}
-          <input
-            type="text"
-            className={styles.input}
-            placeholder="Viết bình luận..."
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            id={`comment-input-${postId}`}
-          />
-          <button
-            type="submit"
-            className={`btn btn-primary btn-sm ${styles.sendBtn}`}
-            disabled={submitting || !input.trim()}
-          >
-            {submitting ? '...' : '→'}
-          </button>
+      {currentProfile ? (
+        <form onSubmit={handleSubmit} className={styles.inputRow}>
+          <Avatar profile={currentProfile} size="sm" />
+          <div className={styles.inputWrapper}>
+            {replyTo && (
+              <div className={styles.replyIndicator}>
+                Đang trả lời <strong>@{replyTo.username}</strong>
+                <button type="button" onClick={() => { setReplyTo(null); setInput(''); }}>×</button>
+              </div>
+            )}
+            <input
+              type="text"
+              className={styles.input}
+              placeholder="Viết bình luận..."
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              id={`comment-input-${postId}`}
+            />
+            <button
+              type="submit"
+              className={`btn btn-primary btn-sm ${styles.sendBtn}`}
+              disabled={submitting || !input.trim()}
+            >
+              {submitting ? '...' : '→'}
+            </button>
+          </div>
+        </form>
+      ) : (
+        <div className={styles.inputRow} style={{ justifyContent: 'center', padding: '16px' }}>
+          <p className="text-sm text-muted">
+            Vui lòng <Link href="/login" style={{ color: 'var(--color-primary)', fontWeight: 500 }}>đăng nhập</Link> để bình luận.
+          </p>
         </div>
-      </form>
+      )}
 
       {/* Comments List */}
       {loading ? (

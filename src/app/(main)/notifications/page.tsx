@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Notification, Profile } from '@/types';
 import Avatar from '@/components/ui/Avatar';
@@ -22,6 +23,7 @@ const NOTIF_ICONS: Record<string, string> = {
 };
 
 export default function NotificationsPage() {
+  const router = useRouter();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<Profile | null>(null);
@@ -30,7 +32,10 @@ export default function NotificationsPage() {
   useEffect(() => {
     const init = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        router.push('/login');
+        return;
+      }
 
       const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
       setCurrentUser(profile);

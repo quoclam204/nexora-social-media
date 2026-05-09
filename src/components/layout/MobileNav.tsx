@@ -34,21 +34,30 @@ export default function MobileNav({ profile }: { profile: Profile | null }) {
 
   return (
     <nav className={styles.nav}>
-      {navItems.map((item) => (
-        <Link
-          key={item.href}
-          href={item.href}
-          className={`${styles.navItem} ${pathname.startsWith(item.href) ? styles.active : ''}`}
-        >
-          {item.icon}
-        </Link>
-      ))}
-      {profile && (
+      {navItems.map((item) => {
+        if (!profile && (item.href === '/notifications' || item.href === '/messages')) return null;
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={`${styles.navItem} ${pathname.startsWith(item.href) ? styles.active : ''}`}
+          >
+            {item.icon}
+          </Link>
+        );
+      })}
+      {profile ? (
         <Link
           href={`/profile/${profile.username}`}
           className={`${styles.navItem} ${pathname.startsWith('/profile') ? styles.active : ''}`}
         >
           <Avatar profile={profile} size="xs" />
+        </Link>
+      ) : (
+        <Link href="/login" className={styles.navItem}>
+          <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+          </svg>
         </Link>
       )}
     </nav>
