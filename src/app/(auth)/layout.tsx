@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Logo from '@/components/ui/Logo';
 import styles from './auth.module.css';
 
 export const metadata: Metadata = {
@@ -16,8 +17,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       </div>
       <div className={styles.authContent}>
         <div className={styles.brandHeader}>
-          <div className={styles.logo}>N</div>
-          <span className={styles.brandName}>Nexora</span>
+          <Logo size="lg" />
         </div>
         {children}
       </div>

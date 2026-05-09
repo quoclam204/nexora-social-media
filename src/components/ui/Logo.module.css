@@ -1,0 +1,57 @@
+.logoContainer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  transition: transform var(--transition-base);
+}
+
+.linkWrapper {
+  text-decoration: none;
+  display: inline-block;
+}
+
+.linkWrapper:hover .logoContainer {
+  transform: translateY(-1px);
+}
+
+.iconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  filter: drop-shadow(0 4px 12px rgba(59, 130, 246, 0.25));
+}
+
+.svg,
+.imageLogo {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: contain;
+}
+
+.text {
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, var(--text-primary), var(--color-primary-light));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Sizes */
+.sm .iconWrapper { width: 28px; height: 28px; }
+.sm .text { font-size: var(--font-lg); }
+
+.md .iconWrapper { width: 38px; height: 38px; }
+.md .text { font-size: var(--font-xl); }
+
+.lg .iconWrapper { width: 48px; height: 48px; }
+.lg .text { font-size: var(--font-2xl); }
+
+.xl .iconWrapper { width: 64px; height: 64px; }
+.xl .text { font-size: var(--font-3xl); }
+
+.letterN {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}

@@ -14,41 +14,9 @@
   overflow-y: auto;
 }
 
-.logo {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
+.logoWrapper {
   padding: var(--space-3) var(--space-2);
   margin-bottom: var(--space-4);
-  text-decoration: none;
-  border-radius: var(--radius-md);
-  transition: background var(--transition-fast);
-}
-
-.logo:hover { background: var(--bg-hover); }
-
-.logoIcon {
-  width: 36px;
-  height: 36px;
-  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-light));
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  font-weight: 900;
-  color: white;
-  box-shadow: var(--shadow-glow-sm);
-  flex-shrink: 0;
-}
-
-.logoText {
-  font-size: var(--font-xl);
-  font-weight: 800;
-  background: linear-gradient(135deg, var(--text-primary), var(--color-primary-light));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
 .nav {

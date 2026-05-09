@@ -9,6 +9,10 @@ export const metadata: Metadata = {
   },
   description: 'Nexora is a modern social media platform to connect with friends, share moments, and discover trending content.',
   keywords: ['social media', 'nexora', 'connect', 'share', 'community'],
+  icons: {
+    icon: '/logo.png',
+    apple: '/logo.png',
+  },
   openGraph: {
     type: 'website',
     title: 'Nexora — Connect & Share',

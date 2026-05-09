@@ -7,6 +7,7 @@ import { Profile } from '@/types';
 import toast from 'react-hot-toast';
 import styles from './Sidebar.module.css';
 import Avatar from '@/components/ui/Avatar';
+import Logo from '@/components/ui/Logo';
 
 interface SidebarProps {
   profile: Profile | null;
@@ -35,10 +36,9 @@ export default function Sidebar({ profile }: SidebarProps) {
   return (
     <aside className={styles.sidebar}>
       {/* Logo */}
-      <Link href="/feed" className={styles.logo}>
-        <div className={styles.logoIcon}>N</div>
-        <span className={styles.logoText}>Nexora</span>
-      </Link>
+      <div className={styles.logoWrapper}>
+        <Logo size="md" />
+      </div>
 
       {/* Navigation */}
       <nav className={styles.nav}>
