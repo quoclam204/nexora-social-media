@@ -7,6 +7,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { getURL } from '@/lib/supabase/utils';
 import toast from 'react-hot-toast';
 import styles from '../login/login.module.css';
 
@@ -51,7 +52,7 @@ export default function RegisterPage() {
           full_name: form.full_name,
           username: form.username.toLowerCase(),
         },
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: `${getURL()}auth/callback`,
       },
     });
 
@@ -70,7 +71,7 @@ export default function RegisterPage() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${getURL()}auth/callback`,
       },
     });
     if (error) {
