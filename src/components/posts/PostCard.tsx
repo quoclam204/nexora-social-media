@@ -12,6 +12,7 @@ import { createClient } from '@/lib/supabase/client';
 import Avatar from '@/components/ui/Avatar';
 import CommentsSection from '@/components/posts/CommentsSection';
 import CreatePostModal from '@/components/posts/CreatePostModal';
+import LikesModal from '@/components/posts/LikesModal';
 import ImageModal from '@/components/ui/ImageModal';
 import toast from 'react-hot-toast';
 import styles from './PostCard.module.css';
@@ -31,8 +32,8 @@ export default function PostCard({ post, currentProfile, onDeleted, style }: Pos
   );
   const [showComments, setShowComments] = useState(false);
   const [commentsCount, setCommentsCount] = useState(post.comments_count ?? 0);
-  const [showReactions, setShowReactions] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [showLikesModal, setShowLikesModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -71,8 +72,6 @@ export default function PostCard({ post, currentProfile, onDeleted, style }: Pos
 
   const handleReact = async (type: ReactionType) => {
     if (!requireAuth() || !currentProfile) return;
-
-    setShowReactions(false);
 
     if (userReaction === type) {
       // Remove reaction
@@ -239,7 +238,11 @@ export default function PostCard({ post, currentProfile, onDeleted, style }: Pos
       {/* Stats */}
       {(reactions > 0 || commentsCount > 0) && (
         <div className={styles.stats}>
-          {reactions > 0 && <span>{reactions} lượt thích</span>}
+          {reactions > 0 && (
+            <button className={styles.statBtn} onClick={() => setShowLikesModal(true)}>
+              {reactions} lượt thích
+            </button>
+          )}
           {commentsCount > 0 && (
             <button className={styles.statBtn} onClick={() => setShowComments(!showComments)}>
               {commentsCount} bình luận
@@ -251,35 +254,14 @@ export default function PostCard({ post, currentProfile, onDeleted, style }: Pos
       {/* Actions */}
       <div className={styles.actions}>
         {/* Reaction button */}
-        <div
-          className={styles.reactionWrapper}
-          onMouseEnter={() => setShowReactions(true)}
-          onMouseLeave={() => setShowReactions(false)}
+        <button
+          id={`btn-like-${post.id}`}
+          className={`${styles.actionBtn} ${userReaction === 'like' ? styles.liked : ''}`}
+          onClick={() => handleReact('like')}
         >
-          <button
-            id={`btn-like-${post.id}`}
-            className={`${styles.actionBtn} ${userReaction ? styles.reacted : ''}`}
-            onClick={() => handleReact(userReaction || 'like')}
-          >
-            {userReaction ? <span>{REACTION_EMOJIS[userReaction]}</span> : <Heart size={20} />}
-            <span className={styles.actionText}>{userReaction ? userReaction : 'Thích'}</span>
-          </button>
-
-          {showReactions && (
-            <div className={styles.reactionPicker}>
-              {(Object.entries(REACTION_EMOJIS) as [ReactionType, string][]).map(([type, emoji]) => (
-                <button
-                  key={type}
-                  className={`${styles.reactionOption} ${userReaction === type ? styles.activeReaction : ''}`}
-                  onClick={() => handleReact(type)}
-                  title={type}
-                >
-                  {emoji}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+          <Heart size={20} fill={userReaction === 'like' ? 'currentColor' : 'none'} />
+          <span className={styles.actionText}>Thích</span>
+        </button>
 
         <button
           id={`btn-comment-${post.id}`}
@@ -330,6 +312,14 @@ export default function PostCard({ post, currentProfile, onDeleted, style }: Pos
         <ImageModal
           imageUrl={selectedImage}
           onClose={() => setSelectedImage(null)}
+        />
+      )}
+
+      {/* Likes Modal */}
+      {showLikesModal && (
+        <LikesModal
+          postId={post.id}
+          onClose={() => setShowLikesModal(false)}
         />
       )}
     </article>

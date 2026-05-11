@@ -179,57 +179,7 @@
   opacity: 1;
 }
 
-.reacted {
-  color: var(--color-primary-light) !important;
+.liked {
+  color: #ef4444 !important;
   font-weight: 600;
-}
-
-/* Reaction Picker */
-.reactionWrapper {
-  position: relative;
-  flex: 1;
-  display: flex;
-  justify-content: center;
-}
-
-.reactionPicker {
-  position: absolute;
-  bottom: calc(100% + 8px);
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-full);
-  padding: var(--space-2) var(--space-3);
-  display: flex;
-  gap: var(--space-1);
-  box-shadow: var(--shadow-lg);
-  z-index: 10;
-  animation: slideInUp 0.15s ease;
-}
-
-@keyframes slideInUp {
-  from { opacity: 0; transform: translateX(-50%) translateY(8px) scale(0.9); }
-  to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
-}
-
-.reactionOption {
-  font-size: 24px;
-  padding: var(--space-1);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  background: transparent;
-  border: none;
-  line-height: 1;
-  transition: transform var(--transition-spring);
-}
-
-.reactionOption:hover {
-  transform: scale(1.3) translateY(-4px);
-}
-
-.activeReaction {
-  transform: scale(1.15);
-  background: var(--bg-active);
-  border-radius: var(--radius-sm);
 }
