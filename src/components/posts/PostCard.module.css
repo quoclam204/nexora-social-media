@@ -145,17 +145,14 @@
 .actionBtn {
   display: flex;
   align-items: center;
-  gap: 0;
+  gap: var(--space-2);
   padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-sm);
   color: var(--text-secondary);
-  font-size: var(--font-sm);
-  font-weight: 500;
   cursor: pointer;
-  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all var(--transition-base);
   background: transparent;
   border: none;
-  font-family: inherit;
   flex: 1;
   justify-content: center;
 }
@@ -163,20 +160,16 @@
 .actionBtn:hover {
   background: var(--bg-hover);
   color: var(--text-primary);
-  gap: var(--space-2);
 }
 
-.actionText {
-  max-width: 0;
-  opacity: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+.count {
+  font-size: var(--font-sm);
+  font-weight: 500;
+  color: var(--text-secondary);
 }
 
-.actionBtn:hover .actionText {
-  max-width: 120px;
-  opacity: 1;
+.actionBtn:hover .count {
+  color: var(--text-primary);
 }
 
 .liked {

@@ -235,44 +235,40 @@ export default function PostCard({ post, currentProfile, onDeleted, style }: Pos
         </div>
       )}
 
-      {/* Stats */}
-      {(reactions > 0 || commentsCount > 0) && (
-        <div className={styles.stats}>
-          {reactions > 0 && (
-            <button className={styles.statBtn} onClick={() => setShowLikesModal(true)}>
-              {reactions} lượt thích
-            </button>
-          )}
-          {commentsCount > 0 && (
-            <button className={styles.statBtn} onClick={() => setShowComments(!showComments)}>
-              {commentsCount} bình luận
-            </button>
-          )}
-        </div>
-      )}
+
 
       {/* Actions */}
       <div className={styles.actions}>
         {/* Reaction button */}
-        <button
+        <div
           id={`btn-like-${post.id}`}
           className={`${styles.actionBtn} ${userReaction === 'like' ? styles.liked : ''}`}
           onClick={() => handleReact('like')}
         >
           <Heart size={20} fill={userReaction === 'like' ? 'currentColor' : 'none'} />
-          <span className={styles.actionText}>Thích</span>
-        </button>
+          {reactions > 0 && (
+            <span 
+              className={styles.count}
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowLikesModal(true);
+              }}
+            >
+              {reactions}
+            </span>
+          )}
+        </div>
 
-        <button
+        <div
           id={`btn-comment-${post.id}`}
           className={styles.actionBtn}
           onClick={() => setShowComments(!showComments)}
         >
           <MessageCircle size={20} />
-          <span className={styles.actionText}>Bình luận</span>
-        </button>
+          {commentsCount > 0 && <span className={styles.count}>{commentsCount}</span>}
+        </div>
 
-        <button
+        <div
           id={`btn-share-${post.id}`}
           className={styles.actionBtn}
           onClick={() => {
@@ -281,8 +277,7 @@ export default function PostCard({ post, currentProfile, onDeleted, style }: Pos
           }}
         >
           <Send size={20} />
-          <span className={styles.actionText}>Chia sẻ</span>
-        </button>
+        </div>
       </div>
 
       {/* Comments */}
