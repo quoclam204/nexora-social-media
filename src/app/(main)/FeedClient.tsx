@@ -30,7 +30,7 @@ export default function FeedClient({ currentProfile }: FeedClientProps) {
   useEffect(() => {
     if (searchParams.get('create') === 'true') {
       setShowModal(true);
-      router.replace('/feed');
+      router.replace('/');
     }
   }, [searchParams, router]);
 

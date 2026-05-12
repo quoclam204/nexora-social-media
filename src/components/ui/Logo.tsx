@@ -16,7 +16,7 @@ export default function Logo({
   size = 'md',
   showText = true,
   className = '',
-  href = '/feed'
+  href = '/'
 }: LogoProps) {
   const content = (
     <div className={`${styles.logoContainer} ${styles[size]} ${className}`}>

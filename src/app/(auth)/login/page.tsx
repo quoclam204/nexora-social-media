@@ -31,7 +31,7 @@ export default function LoginPage() {
       toast.error(error.message);
     } else {
       toast.success('Chào mừng trở lại! 👋');
-      router.push('/feed');
+      router.push('/');
       router.refresh();
     }
 

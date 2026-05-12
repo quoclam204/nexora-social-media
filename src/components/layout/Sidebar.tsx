@@ -14,7 +14,7 @@ interface SidebarProps {
 }
 
 const navItems = [
-  { href: '/feed', label: 'Trang chủ', icon: '🏠' },
+  { href: '/', label: 'Trang chủ', icon: '🏠' },
   { href: '/search', label: 'Tìm kiếm', icon: '🔍' },
   { href: '/notifications', label: 'Thông báo', icon: '🔔' },
   { href: '/messages', label: 'Tin nhắn', icon: '✉️' },
@@ -69,7 +69,7 @@ export default function Sidebar({ profile }: SidebarProps) {
 
       {/* Create Post Button */}
       {profile && (
-        <Link href="/feed?create=true" id="btn-create-post-sidebar" className={`btn btn-primary ${styles.createBtn}`}>
+        <Link href="/?create=true" id="btn-create-post-sidebar" className={`btn btn-primary ${styles.createBtn}`}>
           ✏️ Tạo bài viết
         </Link>
       )}

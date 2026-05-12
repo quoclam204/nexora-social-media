@@ -47,7 +47,7 @@ export async function updateSession(request: NextRequest) {
 
   if (user && isAuth) {
     const url = request.nextUrl.clone();
-    url.pathname = '/feed';
+    url.pathname = '/';
     return NextResponse.redirect(url);
   }
   */

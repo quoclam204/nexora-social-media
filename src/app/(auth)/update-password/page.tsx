@@ -26,7 +26,7 @@ export default function UpdatePasswordPage() {
       toast.error(error.message);
     } else {
       toast.success('Đã đổi mật khẩu thành công! 🎉');
-      router.push('/feed');
+      router.push('/');
     }
     setLoading(false);
   };

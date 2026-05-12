@@ -18,7 +18,7 @@ export default async function AdminPage() {
   
   // Kiểm tra email tài khoản cụ thể
   if (user.email !== ADMIN_EMAIL) {
-    redirect('/feed');
+    redirect('/');
   }
 
   // Sử dụng admin client để có quyền truy cập toàn bộ dữ liệu (bypass RLS)

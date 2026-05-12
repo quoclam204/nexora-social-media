@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description: 'Your personalized Nexora feed',
 };
 
-export default async function FeedPage() {
+export default async function HomePage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
