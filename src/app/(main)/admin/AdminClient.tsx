@@ -1,13 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
 import { Profile, Post } from '@/types';
 import Avatar from '@/components/ui/Avatar';
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
+import { deletePostAction, deleteUserAction } from './actions';
 import styles from './admin.module.css';
 
 interface AdminClientProps {
@@ -20,23 +20,26 @@ export default function AdminClient({ stats, recentPosts, recentUsers }: AdminCl
   const [activeTab, setActiveTab] = useState<'overview' | 'posts' | 'users'>('overview');
   const [posts, setPosts] = useState(recentPosts);
   const [users, setUsers] = useState(recentUsers);
-  const supabase = createClient();
 
   const deletePost = async (id: string) => {
     if (!confirm('Xóa bài viết này?')) return;
-    const { error } = await supabase.from('posts').delete().eq('id', id);
-    if (!error) {
+    const result = await deletePostAction(id);
+    if (result.success) {
       setPosts(prev => prev.filter((p: Post) => p.id !== id));
       toast.success('Đã xóa bài viết');
+    } else {
+      toast.error(result.error || 'Có lỗi xảy ra');
     }
   };
 
   const deleteUser = async (id: string) => {
     if (!confirm('Xóa người dùng này? Hành động này không thể hoàn tác!')) return;
-    const { error } = await supabase.from('profiles').delete().eq('id', id);
-    if (!error) {
+    const result = await deleteUserAction(id);
+    if (result.success) {
       setUsers(prev => prev.filter(u => u.id !== id));
       toast.success('Đã xóa người dùng');
+    } else {
+      toast.error(result.error || 'Có lỗi xảy ra');
     }
   };
 

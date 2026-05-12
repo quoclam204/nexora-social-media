@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import AdminClient from './AdminClient';
 import { Metadata } from 'next';
@@ -8,11 +8,21 @@ export const metadata: Metadata = {
   description: 'Nexora Admin Panel',
 };
 
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@nexora.com';
+
 export default async function AdminPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) redirect('/login');
+  
+  // Kiểm tra email tài khoản cụ thể
+  if (user.email !== ADMIN_EMAIL) {
+    redirect('/feed');
+  }
+
+  // Sử dụng admin client để có quyền truy cập toàn bộ dữ liệu (bypass RLS)
+  const supabaseAdmin = await createAdminClient();
 
   // Fetch stats
   const [
@@ -22,11 +32,11 @@ export default async function AdminPage() {
     { data: recentPosts },
     { data: recentUsers },
   ] = await Promise.all([
-    supabase.from('profiles').select('*', { count: 'exact', head: true }),
-    supabase.from('posts').select('*', { count: 'exact', head: true }),
-    supabase.from('reports').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-    supabase.from('posts').select('*, profile:profiles(*)').order('created_at', { ascending: false }).limit(10),
-    supabase.from('profiles').select('*').order('created_at', { ascending: false }).limit(10),
+    supabaseAdmin.from('profiles').select('*', { count: 'exact', head: true }),
+    supabaseAdmin.from('posts').select('*', { count: 'exact', head: true }),
+    supabaseAdmin.from('reports').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+    supabaseAdmin.from('posts').select('*, profile:profiles(*)').order('created_at', { ascending: false }).limit(10),
+    supabaseAdmin.from('profiles').select('*').order('created_at', { ascending: false }).limit(10),
   ]);
 
   return (
@@ -37,3 +47,4 @@ export default async function AdminPage() {
     />
   );
 }
+
