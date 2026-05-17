@@ -7,17 +7,9 @@
 .main {
   flex: 1;
   margin-left: var(--sidebar-width);
-  margin-right: var(--current-right-panel-width, var(--right-panel-width));
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  transition: margin-right var(--transition-fast);
-}
-
-@media (max-width: 1024px) {
-  .main {
-    margin-right: 0;
-  }
 }
 
 @media (max-width: 768px) {

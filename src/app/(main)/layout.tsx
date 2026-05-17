@@ -2,8 +2,8 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import Sidebar from '@/components/layout/Sidebar';
 import MobileNav from '@/components/layout/MobileNav';
-import RightSidebar from '@/components/layout/RightSidebar';
 import PresenceProvider from '@/components/providers/PresenceProvider';
+import ChatWidget from '@/components/layout/ChatWidget';
 import styles from './main.module.css';
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
@@ -27,8 +27,8 @@ export default async function MainLayout({ children }: { children: React.ReactNo
         <main className={styles.main}>
           {children}
         </main>
-        <RightSidebar />
         <MobileNav profile={profile} />
+        <ChatWidget profile={profile} />
       </div>
     </PresenceProvider>
   );
