@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Profile, Conversation, Message } from '@/types';
-import { Send, X, Maximize2, Minimize2, Edit, MessageSquare, ChevronLeft, Mic, Image as ImageIcon, Smile, Sticker } from 'lucide-react';
+import { Send, X, Maximize2, Minimize2, Edit, MessageSquare, ChevronLeft, Mic, Image as ImageIcon, Smile, Sticker, ChevronDown, ExternalLink } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
 import { usePresence } from '@/store/usePresence';
 import { formatDistanceToNow, format } from 'date-fns';
@@ -26,6 +27,8 @@ interface ChatWidgetProps {
 }
 
 export default function ChatWidget({ profile }: ChatWidgetProps) {
+  const pathname = usePathname();
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -247,7 +250,7 @@ export default function ChatWidget({ profile }: ChatWidgetProps) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  if (!profile) return null;
+  if (!profile || pathname === '/messages' || pathname?.startsWith('/messages/')) return null;
 
   if (!isOpen) {
     const recentUsers = conversations.slice(0, 3).map(c => c.other_user).filter(Boolean);
@@ -274,7 +277,19 @@ export default function ChatWidget({ profile }: ChatWidgetProps) {
   return (
     <div className={`${styles.widgetContainer} ${isMinimized ? styles.minimized : ''}`}>
       {/* Header */}
-      <div className={styles.header}>
+      <div 
+        className={styles.header}
+        onClick={(e) => {
+          if (!(e.target as HTMLElement).closest('button')) {
+            if (selectedConv && selectedConv.other_user) {
+              router.push(`/messages?user=${selectedConv.other_user.username}`);
+            } else {
+              router.push('/messages');
+            }
+          }
+        }}
+        style={{ cursor: 'pointer' }}
+      >
         {selectedConv ? (
           <div className={styles.headerLeft}>
             <button className={styles.iconBtn} onClick={() => setSelectedConv(null)}>
@@ -293,10 +308,23 @@ export default function ChatWidget({ profile }: ChatWidgetProps) {
           <h3 className={styles.title}>Tin nhắn</h3>
         )}
         <div className={styles.headerActions}>
-          <button className={styles.iconBtn} onClick={() => setIsMinimized(!isMinimized)}>
-            {isMinimized ? <Maximize2 size={20} /> : <Minimize2 size={20} />}
+          <button 
+            className={styles.iconBtn} 
+            onClick={() => {
+              if (selectedConv && selectedConv.other_user) {
+                router.push(`/messages?user=${selectedConv.other_user.username}`);
+              } else {
+                router.push('/messages');
+              }
+            }}
+            title="Mở toàn màn hình"
+          >
+            <Maximize2 size={18} />
           </button>
-          <button className={styles.iconBtn} onClick={() => setIsOpen(false)}>
+          <button className={styles.iconBtn} onClick={() => setIsMinimized(!isMinimized)} title={isMinimized ? "Mở rộng" : "Thu nhỏ"}>
+            {isMinimized ? <MessageSquare size={18} /> : <ChevronDown size={20} />}
+          </button>
+          <button className={styles.iconBtn} onClick={() => setIsOpen(false)} title="Đóng">
             <X size={22} />
           </button>
         </div>

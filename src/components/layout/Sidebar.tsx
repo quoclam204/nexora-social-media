@@ -8,7 +8,7 @@ import toast from 'react-hot-toast';
 import styles from './Sidebar.module.css';
 import Avatar from '@/components/ui/Avatar';
 import Logo from '@/components/ui/Logo';
-import { Search, Bell, MessageSquare, Hash, PenSquare } from 'lucide-react';
+import { Search, Bell, MessageSquare, Hash, PenSquare, Send } from 'lucide-react';
 
 interface SidebarProps {
   profile: Profile | null;
@@ -53,6 +53,7 @@ const navItems = [
   { href: '/', label: 'Trang chủ', icon: HomeIcon },
   { href: '/search', label: 'Tìm kiếm', icon: Search },
   { href: '/notifications', label: 'Thông báo', icon: Bell },
+  { href: '/messages', label: 'Tin nhắn', icon: Send },
   { href: '/hashtags', label: 'Hashtag', icon: Hash },
 ];
 
@@ -78,7 +79,7 @@ export default function Sidebar({ profile }: SidebarProps) {
       {/* Navigation */}
       <nav className={styles.nav}>
         {navItems.map((item) => {
-          if (!profile && item.href === '/notifications') return null;
+          if (!profile && (item.href === '/notifications' || item.href === '/messages')) return null;
           const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
           const Icon = item.icon;
           return (

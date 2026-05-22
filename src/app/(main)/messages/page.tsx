@@ -11,8 +11,17 @@ import toast from 'react-hot-toast';
 import styles from './messages.module.css';
 import Image from 'next/image';
 import { usePresence } from '@/store/usePresence';
+import EmojiPicker from 'emoji-picker-react';
+import { Send, X, Mic, Image as ImageIcon, Smile, Sticker } from 'lucide-react';
 
-const EMOJI_QUICK = ['😊', '😂', '❤️', '🔥', '👍', '😭', '🥺', '✨', '🎉', '💯'];
+const MOCK_STICKERS = [
+  'https://media.giphy.com/media/ICOgUNjpvO0PC/giphy.gif',
+  'https://media.giphy.com/media/VbnUQpnihPSIgIXuZv/giphy.gif',
+  'https://media.giphy.com/media/MDJ9IbxxvDUQM/giphy.gif',
+  'https://media.giphy.com/media/y0NFayaBeiWEU/giphy.gif',
+  'https://media.giphy.com/media/11sBLVxIRvnMQ8/giphy.gif',
+  'https://media.giphy.com/media/3o7TKoWXm3okO1kgHC/giphy.gif'
+];
 
 export default function MessagesPage() {
   const router = useRouter();
@@ -22,11 +31,18 @@ export default function MessagesPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
-  const [showEmoji, setShowEmoji] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showStickerPicker, setShowStickerPicker] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
+  const stickerPickerRef = useRef<HTMLDivElement>(null);
   const channelRef = useRef<any>(null);
   const supabase = createClient();
   const { isOnline } = usePresence();
@@ -84,9 +100,19 @@ export default function MessagesPage() {
         supabase.removeChannel(channelRef.current);
       }
       supabase.removeChannel(convsChannel);
+      document.removeEventListener('mousedown', handleClickOutside);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const handleClickOutside = (event: MouseEvent) => {
+    if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
+      setShowEmojiPicker(false);
+    }
+    if (stickerPickerRef.current && !stickerPickerRef.current.contains(event.target as Node)) {
+      setShowStickerPicker(false);
+    }
+  };
 
   const fetchConversations = async (userId: string, targetUsername?: string | null) => {
     const { data } = await supabase
@@ -209,6 +235,81 @@ export default function MessagesPage() {
     setSending(false);
   };
 
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) audioChunksRef.current.push(event.data);
+      };
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const path = `${selectedConv?.id}/${Date.now()}.webm`;
+        setSending(true);
+        const { error } = await supabase.storage.from('messages').upload(path, audioBlob);
+        if (!error) {
+          const { data: signedData } = await supabase.storage.from('messages').createSignedUrl(path, 60 * 60 * 24 * 365);
+          if (signedData && currentProfile && selectedConv) {
+             await supabase.from('messages').insert({
+              conversation_id: selectedConv.id,
+              sender_id: currentProfile.id,
+              content: '',
+              image_url: signedData.signedUrl,
+            });
+            await supabase.from('conversations').update({
+              last_message: '[Tin nhắn thoại]',
+              last_message_at: new Date().toISOString(),
+            }).eq('id', selectedConv.id);
+            fetchMessages(selectedConv.id);
+          }
+        } else {
+          toast.error('Lỗi khi gửi tin nhắn thoại');
+        }
+        setSending(false);
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+    } catch (error) {
+      console.error('Error accessing microphone', error);
+      toast.error('Không thể truy cập microphone');
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+      setIsRecording(false);
+    }
+  };
+
+  const sendSticker = async (stickerUrl: string) => {
+    if (!currentProfile || !selectedConv) return;
+    setSending(true);
+    const { error } = await supabase.from('messages').insert({
+      conversation_id: selectedConv.id,
+      sender_id: currentProfile.id,
+      content: '',
+      image_url: stickerUrl,
+    });
+    if (!error) {
+      await supabase.from('conversations').update({
+        last_message: '[Nhãn dán]',
+        last_message_at: new Date().toISOString(),
+      }).eq('id', selectedConv.id);
+      fetchMessages(selectedConv.id);
+      setShowStickerPicker(false);
+    } else {
+      toast.error('Không thể gửi nhãn dán');
+    }
+    setSending(false);
+  };
+
   return (
     <div className={styles.layout}>
       {/* Conversations List */}
@@ -297,14 +398,26 @@ export default function MessagesPage() {
                 return (
                   <div key={msg.id} className={`${styles.messageRow} ${isMe ? styles.myMessage : ''}`}>
                     {!isMe && <Avatar profile={(msg as any).sender} size="xs" />}
-                    <div className={`${styles.bubble} ${isMe ? styles.myBubble : styles.theirBubble}`}>
+                    <div className={styles.messageContent} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                       {msg.image_url && (
-                        <div style={{ marginBottom: 8, borderRadius: 8, overflow: 'hidden' }}>
-                          <Image src={msg.image_url} alt="Sent image" width={240} height={240} style={{ objectFit: 'contain' }} />
+                        (msg.image_url.includes('.webm') || msg.image_url.includes('audio')) ? (
+                          <div className={`${styles.bubble} ${isMe ? styles.myBubble : styles.theirBubble}`}>
+                            <audio controls src={msg.image_url} style={{ maxWidth: '100%', outline: 'none' }} />
+                          </div>
+                        ) : (
+                          <div style={{ borderRadius: 16, overflow: 'hidden', alignSelf: isMe ? 'flex-end' : 'flex-start' }}>
+                            <Image src={msg.image_url} alt="Sent image" width={240} height={240} style={{ objectFit: 'contain' }} />
+                          </div>
+                        )
+                      )}
+                      
+                      {msg.content && (
+                        <div className={`${styles.bubble} ${isMe ? styles.myBubble : styles.theirBubble}`}>
+                          <p>{msg.content}</p>
                         </div>
                       )}
-                      {msg.content && <p>{msg.content}</p>}
-                      <span className={styles.messageTime}>
+                      
+                      <span className={styles.messageTime} style={{ alignSelf: isMe ? 'flex-end' : 'flex-start' }}>
                         {formatDistanceToNow(new Date(msg.created_at), { addSuffix: true, locale: vi })}
                         {isMe && (msg.read ? ' · Đã xem' : ' · Đã gửi')}
                       </span>
@@ -315,52 +428,15 @@ export default function MessagesPage() {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Image Preview */}
-            {selectedImage && (
-              <div style={{ padding: '0 var(--space-4)', position: 'relative' }}>
-                <div style={{ position: 'relative', width: 80, height: 80, borderRadius: 8, overflow: 'hidden' }}>
-                  <Image src={URL.createObjectURL(selectedImage)} alt="Preview" fill style={{ objectFit: 'cover' }} />
-                  <button 
-                    onClick={() => setSelectedImage(null)}
-                    style={{ position: 'absolute', top: 4, right: 4, background: 'rgba(0,0,0,0.5)', color: 'white', borderRadius: '50%', width: 20, height: 20, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}
-                  >×</button>
-                </div>
-              </div>
-            )}
-
-            {/* Emoji picker */}
-            {showEmoji && (
-              <div style={{ padding: 'var(--space-2) var(--space-4)', background: 'var(--bg-surface)', borderTop: '1px solid var(--border-subtle)', display: 'flex', gap: 8, overflowX: 'auto' }}>
-                {EMOJI_QUICK.map(emoji => (
-                  <button
-                    key={emoji}
-                    onClick={() => { setNewMessage(prev => prev + emoji); setShowEmoji(false); }}
-                    style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', padding: 4 }}
-                  >
-                    {emoji}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* Input */}
+            {/* Input Area */}
             <form onSubmit={sendMessage} className={styles.inputArea}>
-              <button
-                type="button"
-                className="btn btn-ghost btn-icon"
-                onClick={() => fileInputRef.current?.click()}
-                title="Gửi ảnh"
-              >
-                🖼️
-              </button>
-              <button
-                type="button"
-                className="btn btn-ghost btn-icon"
-                onClick={() => setShowEmoji(!showEmoji)}
-                title="Emoji"
-              >
-                😊
-              </button>
+              {selectedImage && (
+                <div className={styles.previewWrapper}>
+                  <img src={URL.createObjectURL(selectedImage)} alt="Preview" className={styles.previewImage} />
+                  <button type="button" className={styles.closePreview} onClick={() => setSelectedImage(null)}><X size={14} /></button>
+                </div>
+              )}
+              
               <input
                 ref={fileInputRef}
                 type="file"
@@ -368,22 +444,72 @@ export default function MessagesPage() {
                 onChange={(e) => setSelectedImage(e.target.files?.[0] || null)}
                 style={{ display: 'none' }}
               />
-              <input
-                type="text"
-                className={styles.messageInput}
-                placeholder="Nhập tin nhắn..."
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                id="message-input"
-              />
-              <button
-                id="btn-send-message"
-                type="submit"
-                className="btn btn-primary"
-                disabled={sending || (!newMessage.trim() && !selectedImage)}
-              >
-                {sending ? '...' : '➤'}
-              </button>
+
+              <div className={styles.inputWrapper}>
+                <div ref={emojiPickerRef}>
+                  <button 
+                    type="button" 
+                    className={styles.inputIconBtn}
+                    onClick={() => setShowEmojiPicker(prev => !prev)}
+                  >
+                    <Smile size={20} />
+                  </button>
+                  {showEmojiPicker && (
+                    <div className={styles.emojiPickerWrapper}>
+                      <EmojiPicker 
+                        onEmojiClick={(emojiData) => {
+                          setNewMessage(prev => prev + emojiData.emoji);
+                        }}
+                        width={300}
+                        height={400}
+                      />
+                    </div>
+                  )}
+                </div>
+                
+                {isRecording ? (
+                  <div className={styles.recordingIndicator}>
+                    <div className={styles.recordingDot} />
+                    Đang ghi âm...
+                  </div>
+                ) : (
+                  <input
+                    type="text"
+                    className={styles.messageInput}
+                    placeholder="Nhập tin nhắn..."
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    id="message-input"
+                  />
+                )}
+                
+                <div className={styles.inputActionsRight}>
+                  {isRecording ? (
+                    <button type="button" className={styles.inputIconBtn} onClick={stopRecording} style={{ color: 'var(--color-danger, #ef4444)' }}>
+                      <X size={20} />
+                    </button>
+                  ) : (newMessage.trim() || selectedImage) ? (
+                    <button type="submit" className={styles.sendBtn} disabled={sending}>
+                      <Send size={18} />
+                    </button>
+                  ) : (
+                    <>
+                      <button type="button" className={styles.inputIconBtn} onClick={startRecording}><Mic size={20} /></button>
+                      <button type="button" className={styles.inputIconBtn} onClick={() => fileInputRef.current?.click()}><ImageIcon size={20} /></button>
+                      <div ref={stickerPickerRef} style={{ position: 'relative' }}>
+                        <button type="button" className={styles.inputIconBtn} onClick={() => setShowStickerPicker(!showStickerPicker)}><Sticker size={20} /></button>
+                        {showStickerPicker && (
+                          <div className={styles.stickerGrid}>
+                            {MOCK_STICKERS.map((sticker, idx) => (
+                              <img key={idx} src={sticker} alt="Sticker" onClick={() => sendSticker(sticker)} />
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
             </form>
           </>
         )}

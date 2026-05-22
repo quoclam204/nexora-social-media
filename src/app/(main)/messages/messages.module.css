@@ -211,27 +211,177 @@
 }
 
 .inputArea {
-  display: flex;
-  gap: var(--space-3);
-  padding: var(--space-4) var(--space-5);
+  padding: 12px 16px;
   border-top: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  position: relative;
+}
+
+.inputWrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-hover);
+  border-radius: 24px;
+  padding: 6px 12px;
+  border: 1px solid var(--border-subtle);
+  position: relative;
+  flex: 1;
+}
+
+.emojiPickerWrapper {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  margin-bottom: 8px;
+  z-index: 50;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .messageInput {
   flex: 1;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-full);
-  padding: 12px var(--space-5);
-  color: var(--text-primary);
-  font-size: var(--font-sm);
-  font-family: inherit;
+  background: transparent;
+  border: none;
   outline: none;
-  transition: border-color var(--transition-fast);
+  color: var(--text-primary);
+  font-size: 14px;
+  padding: 4px 0;
 }
 
-.messageInput:focus { border-color: var(--color-primary); }
-.messageInput::placeholder { color: var(--text-muted); }
+.inputActionsRight {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.inputIconBtn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.inputIconBtn:hover {
+  background: var(--bg-active);
+  color: var(--text-primary);
+}
+
+.sendBtn {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.sendBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sendBtn:hover:not(:disabled) {
+  background: var(--color-primary-light);
+}
+
+.previewWrapper {
+  position: absolute;
+  bottom: 100%;
+  left: 16px;
+  margin-bottom: 8px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  z-index: 40;
+}
+
+.previewImage {
+  max-height: 100px;
+  border-radius: 4px;
+}
+
+.closePreview {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: var(--color-danger, #ef4444);
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+}
+
+.recordingIndicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-danger, #ef4444);
+  font-weight: 500;
+  font-size: 14px;
+  flex: 1;
+}
+
+.recordingDot {
+  width: 8px;
+  height: 8px;
+  background: var(--color-danger, #ef4444);
+  border-radius: 50%;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.5); opacity: 0.5; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.stickerGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  margin-bottom: 8px;
+  z-index: 50;
+  width: 250px;
+}
+
+.stickerGrid img {
+  width: 100%;
+  height: auto;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.stickerGrid img:hover {
+  transform: scale(1.05);
+}
 
 @media (max-width: 768px) {
   .sidebar { width: 100%; display: none; }
