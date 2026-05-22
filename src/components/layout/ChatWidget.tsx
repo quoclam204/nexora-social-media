@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { Profile, Conversation, Message } from '@/types';
 import { Send, X, Maximize2, Minimize2, Edit, MessageSquare, ChevronLeft, Mic, Image as ImageIcon, Smile, Sticker, ChevronDown, ExternalLink } from 'lucide-react';
@@ -40,7 +41,7 @@ export default function ChatWidget({ profile }: ChatWidgetProps) {
   const [showStickerPicker, setShowStickerPicker] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [isRecording, setIsRecording] = useState(false);
-  
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -181,7 +182,7 @@ export default function ChatWidget({ profile }: ChatWidgetProps) {
         if (!error) {
           const { data: signedData } = await supabase.storage.from('messages').createSignedUrl(path, 60 * 60 * 24 * 365);
           if (signedData && profile && selectedConv) {
-             await supabase.from('messages').insert({
+            await supabase.from('messages').insert({
               conversation_id: selectedConv.id,
               sender_id: profile.id,
               content: '',
@@ -277,7 +278,7 @@ export default function ChatWidget({ profile }: ChatWidgetProps) {
   return (
     <div className={`${styles.widgetContainer} ${isMinimized ? styles.minimized : ''}`}>
       {/* Header */}
-      <div 
+      <div
         className={styles.header}
         onClick={(e) => {
           if (!(e.target as HTMLElement).closest('button')) {
@@ -295,21 +296,34 @@ export default function ChatWidget({ profile }: ChatWidgetProps) {
             <button className={styles.iconBtn} onClick={() => setSelectedConv(null)}>
               <ChevronLeft size={20} />
             </button>
-            <Avatar profile={selectedConv.other_user} size="xs" isOnline={isOnline(selectedConv.other_user?.id || '')} />
-            <div className={styles.chatTitleInfo}>
-              <div className={styles.chatName}>{selectedConv.other_user?.full_name || selectedConv.other_user?.username}</div>
-              <div className={styles.chatStatus}>
-                {isOnline(selectedConv.other_user?.id || '') ? 'Đang hoạt động' : 
-                  `Hoạt động ${selectedConv.other_user?.last_seen ? formatDistanceToNow(new Date(selectedConv.other_user.last_seen), { locale: vi }) : 'gần đây'} trước`}
+            <Link
+              href={selectedConv?.other_user?.username ? `/profile/${selectedConv.other_user.username}` : '#'}
+              className={styles.userInfoWrapper}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (selectedConv?.other_user?.username) {
+                  setIsOpen(false);
+                } else {
+                  e.preventDefault();
+                }
+              }}
+            >
+              <Avatar profile={selectedConv.other_user} size="xs" isOnline={isOnline(selectedConv.other_user?.id || '')} />
+              <div className={styles.chatTitleInfo}>
+                <div className={styles.chatName}>{selectedConv.other_user?.full_name || selectedConv.other_user?.username}</div>
+                <div className={styles.chatStatus}>
+                  {isOnline(selectedConv.other_user?.id || '') ? 'Đang hoạt động' :
+                    `Hoạt động ${selectedConv.other_user?.last_seen ? formatDistanceToNow(new Date(selectedConv.other_user.last_seen), { locale: vi }) : 'gần đây'} trước`}
+                </div>
               </div>
-            </div>
+            </Link>
           </div>
         ) : (
           <h3 className={styles.title}>Tin nhắn</h3>
         )}
         <div className={styles.headerActions}>
-          <button 
-            className={styles.iconBtn} 
+          <button
+            className={styles.iconBtn}
             onClick={() => {
               if (selectedConv && selectedConv.other_user) {
                 router.push(`/messages?user=${selectedConv.other_user.username}`);
@@ -320,9 +334,6 @@ export default function ChatWidget({ profile }: ChatWidgetProps) {
             title="Mở toàn màn hình"
           >
             <Maximize2 size={18} />
-          </button>
-          <button className={styles.iconBtn} onClick={() => setIsMinimized(!isMinimized)} title={isMinimized ? "Mở rộng" : "Thu nhỏ"}>
-            {isMinimized ? <MessageSquare size={18} /> : <ChevronDown size={20} />}
           </button>
           <button className={styles.iconBtn} onClick={() => setIsOpen(false)} title="Đóng">
             <X size={22} />
@@ -340,7 +351,7 @@ export default function ChatWidget({ profile }: ChatWidgetProps) {
                   const isMe = msg.sender_id === profile.id;
                   const isLast = idx === messages.length - 1;
                   const showTime = idx === 0 || new Date(msg.created_at).getTime() - new Date(messages[idx - 1].created_at).getTime() > 3600000;
-                  
+
                   return (
                     <div key={msg.id} className={styles.messageRow}>
                       {showTime && (
@@ -363,7 +374,7 @@ export default function ChatWidget({ profile }: ChatWidgetProps) {
                             )
                           )}
                           {msg.content && (
-                            <div 
+                            <div
                               className={`${styles.messageBubble} ${isMe ? styles.bubbleMe : styles.bubbleThem}`}
                               style={{ marginTop: msg.image_url ? 4 : 0 }}
                             >
@@ -386,19 +397,19 @@ export default function ChatWidget({ profile }: ChatWidgetProps) {
                     <button type="button" className={styles.closePreview} onClick={() => setSelectedImage(null)}><X size={14} /></button>
                   </div>
                 )}
-                
-                <input 
-                  type="file" 
-                  ref={fileInputRef} 
-                  accept="image/*" 
-                  style={{ display: 'none' }} 
-                  onChange={e => setSelectedImage(e.target.files?.[0] || null)} 
+
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  onChange={e => setSelectedImage(e.target.files?.[0] || null)}
                 />
 
                 <div className={styles.inputWrapper}>
                   <div ref={emojiPickerRef}>
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       className={styles.inputIconBtn}
                       onClick={() => setShowEmojiPicker(prev => !prev)}
                     >
@@ -406,7 +417,7 @@ export default function ChatWidget({ profile }: ChatWidgetProps) {
                     </button>
                     {showEmojiPicker && (
                       <div className={styles.emojiPickerWrapper}>
-                        <EmojiPicker 
+                        <EmojiPicker
                           onEmojiClick={(emojiData) => {
                             setNewMessage(prev => prev + emojiData.emoji);
                           }}
@@ -416,22 +427,22 @@ export default function ChatWidget({ profile }: ChatWidgetProps) {
                       </div>
                     )}
                   </div>
-                  
+
                   {isRecording ? (
                     <div className={styles.recordingIndicator}>
                       <div className={styles.recordingDot} />
                       Đang ghi âm...
                     </div>
                   ) : (
-                    <input 
-                      type="text" 
-                      className={styles.messageInput} 
-                      placeholder="Nhắn tin..." 
+                    <input
+                      type="text"
+                      className={styles.messageInput}
+                      placeholder="Nhắn tin..."
                       value={newMessage}
                       onChange={e => setNewMessage(e.target.value)}
                     />
                   )}
-                  
+
                   <div className={styles.inputActionsRight}>
                     {isRecording ? (
                       <button type="button" className={styles.inputIconBtn} onClick={stopRecording} style={{ color: 'var(--color-danger, #ef4444)' }}>

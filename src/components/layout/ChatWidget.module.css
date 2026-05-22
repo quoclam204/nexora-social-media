@@ -81,6 +81,22 @@
   gap: 12px;
 }
 
+.userInfoWrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  margin: -6px -10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
+  text-decoration: none;
+}
+
+.userInfoWrapper:hover {
+  background-color: var(--bg-hover);
+}
+
 .chatTitleInfo {
   display: flex;
   flex-direction: column;
