@@ -8,7 +8,18 @@ import Avatar from '@/components/ui/Avatar';
 import { usePresence } from '@/store/usePresence';
 import { formatDistanceToNow, format } from 'date-fns';
 import { vi } from 'date-fns/locale';
+import EmojiPicker from 'emoji-picker-react';
+import toast from 'react-hot-toast';
 import styles from './ChatWidget.module.css';
+
+const MOCK_STICKERS = [
+  'https://media.giphy.com/media/ICOgUNjpvO0PC/giphy.gif',
+  'https://media.giphy.com/media/VbnUQpnihPSIgIXuZv/giphy.gif',
+  'https://media.giphy.com/media/MDJ9IbxxvDUQM/giphy.gif',
+  'https://media.giphy.com/media/y0NFayaBeiWEU/giphy.gif',
+  'https://media.giphy.com/media/11sBLVxIRvnMQ8/giphy.gif',
+  'https://media.giphy.com/media/3o7TKoWXm3okO1kgHC/giphy.gif'
+];
 
 interface ChatWidgetProps {
   profile: Profile | null;
@@ -22,7 +33,16 @@ export default function ChatWidget({ profile }: ChatWidgetProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showStickerPicker, setShowStickerPicker] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
   
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const stickerPickerRef = useRef<HTMLDivElement>(null);
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const channelRef = useRef<any>(null);
   const supabase = createClient();
@@ -102,25 +122,130 @@ export default function ChatWidget({ profile }: ChatWidgetProps) {
 
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!profile || !selectedConv || !newMessage.trim()) return;
+    if (!profile || !selectedConv || (!newMessage.trim() && !selectedImage)) return;
     setSending(true);
+
+    let uploadedImageUrl = null;
+    if (selectedImage) {
+      const ext = selectedImage.name.split('.').pop();
+      const path = `${selectedConv.id}/${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from('messages').upload(path, selectedImage);
+      if (!error) {
+        const { data: signedData } = await supabase.storage.from('messages').createSignedUrl(path, 60 * 60 * 24 * 365);
+        if (signedData) {
+          uploadedImageUrl = signedData.signedUrl;
+        }
+      }
+    }
 
     const { error } = await supabase.from('messages').insert({
       conversation_id: selectedConv.id,
       sender_id: profile.id,
       content: newMessage.trim(),
+      image_url: uploadedImageUrl,
     });
 
     if (!error) {
       await supabase.from('conversations').update({
-        last_message: newMessage.trim(),
+        last_message: uploadedImageUrl ? '[Hình ảnh]' : newMessage.trim(),
         last_message_at: new Date().toISOString(),
       }).eq('id', selectedConv.id);
       setNewMessage('');
+      setSelectedImage(null);
       fetchMessages(selectedConv.id);
+    } else {
+      toast.error('Không thể gửi tin nhắn');
     }
     setSending(false);
   };
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) audioChunksRef.current.push(event.data);
+      };
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const path = `${selectedConv?.id}/${Date.now()}.webm`;
+        setSending(true);
+        const { error } = await supabase.storage.from('messages').upload(path, audioBlob);
+        if (!error) {
+          const { data: signedData } = await supabase.storage.from('messages').createSignedUrl(path, 60 * 60 * 24 * 365);
+          if (signedData && profile && selectedConv) {
+             await supabase.from('messages').insert({
+              conversation_id: selectedConv.id,
+              sender_id: profile.id,
+              content: '',
+              image_url: signedData.signedUrl,
+            });
+            await supabase.from('conversations').update({
+              last_message: '[Tin nhắn thoại]',
+              last_message_at: new Date().toISOString(),
+            }).eq('id', selectedConv.id);
+            fetchMessages(selectedConv.id);
+          }
+        } else {
+          toast.error('Lỗi khi gửi tin nhắn thoại');
+        }
+        setSending(false);
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+    } catch (error) {
+      console.error('Error accessing microphone', error);
+      toast.error('Không thể truy cập microphone');
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+      setIsRecording(false);
+    }
+  };
+
+  const sendSticker = async (stickerUrl: string) => {
+    if (!profile || !selectedConv) return;
+    setSending(true);
+    const { error } = await supabase.from('messages').insert({
+      conversation_id: selectedConv.id,
+      sender_id: profile.id,
+      content: '',
+      image_url: stickerUrl,
+    });
+    if (!error) {
+      await supabase.from('conversations').update({
+        last_message: '[Nhãn dán]',
+        last_message_at: new Date().toISOString(),
+      }).eq('id', selectedConv.id);
+      fetchMessages(selectedConv.id);
+      setShowStickerPicker(false);
+    } else {
+      toast.error('Không thể gửi nhãn dán');
+    }
+    setSending(false);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
+        setShowEmojiPicker(false);
+      }
+      if (stickerPickerRef.current && !stickerPickerRef.current.contains(event.target as Node)) {
+        setShowStickerPicker(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   if (!profile) return null;
 
@@ -198,9 +323,25 @@ export default function ChatWidget({ profile }: ChatWidgetProps) {
                       <div className={`${styles.messageWrapper} ${isMe ? styles.messageMe : styles.messageThem}`}>
                         {!isMe && <Avatar profile={(msg as any).sender} size="xs" />}
                         <div className={styles.messageContent}>
-                          <div className={`${styles.messageBubble} ${isMe ? styles.bubbleMe : styles.bubbleThem}`}>
-                            {msg.content}
-                          </div>
+                          {msg.image_url && (
+                            (msg.image_url.includes('.webm') || msg.image_url.includes('audio')) ? (
+                              <div className={`${styles.messageBubble} ${isMe ? styles.bubbleMe : styles.bubbleThem}`}>
+                                <audio controls src={msg.image_url} style={{ maxWidth: '100%', outline: 'none' }} />
+                              </div>
+                            ) : (
+                              <div style={{ borderRadius: 16, overflow: 'hidden', alignSelf: isMe ? 'flex-end' : 'flex-start' }}>
+                                <img src={msg.image_url} alt="Media" style={{ display: 'block', maxWidth: '100%', maxHeight: 240, objectFit: 'contain' }} />
+                              </div>
+                            )
+                          )}
+                          {msg.content && (
+                            <div 
+                              className={`${styles.messageBubble} ${isMe ? styles.bubbleMe : styles.bubbleThem}`}
+                              style={{ marginTop: msg.image_url ? 4 : 0 }}
+                            >
+                              {msg.content}
+                            </div>
+                          )}
                           {isLast && isMe && msg.read && <div className={styles.readStatus}>Đã xem</div>}
                         </div>
                       </div>
@@ -211,25 +352,81 @@ export default function ChatWidget({ profile }: ChatWidgetProps) {
               </div>
 
               <form className={styles.inputArea} onSubmit={sendMessage}>
+                {selectedImage && (
+                  <div className={styles.previewWrapper}>
+                    <img src={URL.createObjectURL(selectedImage)} alt="Preview" className={styles.previewImage} />
+                    <button type="button" className={styles.closePreview} onClick={() => setSelectedImage(null)}><X size={14} /></button>
+                  </div>
+                )}
+                
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  accept="image/*" 
+                  style={{ display: 'none' }} 
+                  onChange={e => setSelectedImage(e.target.files?.[0] || null)} 
+                />
+
                 <div className={styles.inputWrapper}>
-                  <button type="button" className={styles.inputIconBtn}><Smile size={20} /></button>
-                  <input 
-                    type="text" 
-                    className={styles.messageInput} 
-                    placeholder="Nhắn tin..." 
-                    value={newMessage}
-                    onChange={e => setNewMessage(e.target.value)}
-                  />
+                  <div ref={emojiPickerRef}>
+                    <button 
+                      type="button" 
+                      className={styles.inputIconBtn}
+                      onClick={() => setShowEmojiPicker(prev => !prev)}
+                    >
+                      <Smile size={20} />
+                    </button>
+                    {showEmojiPicker && (
+                      <div className={styles.emojiPickerWrapper}>
+                        <EmojiPicker 
+                          onEmojiClick={(emojiData) => {
+                            setNewMessage(prev => prev + emojiData.emoji);
+                          }}
+                          width={300}
+                          height={400}
+                        />
+                      </div>
+                    )}
+                  </div>
+                  
+                  {isRecording ? (
+                    <div className={styles.recordingIndicator}>
+                      <div className={styles.recordingDot} />
+                      Đang ghi âm...
+                    </div>
+                  ) : (
+                    <input 
+                      type="text" 
+                      className={styles.messageInput} 
+                      placeholder="Nhắn tin..." 
+                      value={newMessage}
+                      onChange={e => setNewMessage(e.target.value)}
+                    />
+                  )}
+                  
                   <div className={styles.inputActionsRight}>
-                    {newMessage.trim() ? (
+                    {isRecording ? (
+                      <button type="button" className={styles.inputIconBtn} onClick={stopRecording} style={{ color: 'var(--color-danger, #ef4444)' }}>
+                        <X size={20} />
+                      </button>
+                    ) : (newMessage.trim() || selectedImage) ? (
                       <button type="submit" className={styles.sendBtn} disabled={sending}>
                         <Send size={18} />
                       </button>
                     ) : (
                       <>
-                        <button type="button" className={styles.inputIconBtn}><Mic size={20} /></button>
-                        <button type="button" className={styles.inputIconBtn}><ImageIcon size={20} /></button>
-                        <button type="button" className={styles.inputIconBtn}><Sticker size={20} /></button>
+                        <button type="button" className={styles.inputIconBtn} onClick={startRecording}><Mic size={20} /></button>
+                        <button type="button" className={styles.inputIconBtn} onClick={() => fileInputRef.current?.click()}><ImageIcon size={20} /></button>
+                        <div ref={stickerPickerRef} style={{ position: 'relative' }}>
+                          <button type="button" className={styles.inputIconBtn} onClick={() => setShowStickerPicker(!showStickerPicker)}><Sticker size={20} /></button>
+                          {showStickerPicker && (
+                            <div className={styles.stickerGrid}>
+                              {MOCK_STICKERS.map((sticker, idx) => (
+                                <img key={idx} src={sticker} alt="Sticker" onClick={() => sendSticker(sticker)} />
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </>
                     )}
                   </div>
