@@ -1,11 +1,16 @@
 .post {
-  animation: fadeIn 0.3s ease backwards;
+  animation: slideInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) backwards;
   position: relative;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  margin-bottom: var(--space-5);
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+.post:hover {
+  border-color: var(--border-default);
 }
 
 .header {
@@ -56,11 +61,12 @@
 
 .content {
   padding: var(--space-3) var(--space-5);
-  font-size: var(--font-base);
+  font-size: 15px;
   color: var(--text-primary);
-  line-height: 1.65;
+  line-height: 1.5;
   white-space: pre-wrap;
   word-break: break-word;
+  letter-spacing: -0.01em;
 }
 
 .hashtag {
@@ -137,8 +143,8 @@
 /* Actions */
 .actions {
   display: flex;
-  gap: 0;
-  padding: var(--space-1) var(--space-4);
+  gap: 4px;
+  padding: var(--space-2) var(--space-4);
   border-top: 1px solid var(--border-subtle);
 }
 
@@ -146,20 +152,33 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-sm);
+  padding: 8px 0;
+  border-radius: var(--radius-md);
   color: var(--text-secondary);
   cursor: pointer;
-  transition: all var(--transition-base);
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
   background: transparent;
   border: none;
   flex: 1;
   justify-content: center;
+  user-select: none;
 }
 
 .actionBtn:hover {
   background: var(--bg-hover);
   color: var(--text-primary);
+}
+
+.actionBtn:active {
+  transform: scale(0.95);
+}
+
+.actionBtn svg {
+  transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.actionBtn:hover svg {
+  transform: scale(1.1);
 }
 
 .count {
@@ -175,4 +194,8 @@
 .liked {
   color: #ef4444 !important;
   font-weight: 600;
+}
+
+.liked svg {
+  animation: bounce-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }

@@ -4,16 +4,16 @@
   gap: var(--space-3);
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
+  border-radius: 16px;
   padding: var(--space-4) var(--space-5);
   cursor: pointer;
-  transition: all var(--transition-base);
-  margin-bottom: var(--space-4);
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  margin-bottom: var(--space-6);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
 }
 
 .box:hover {
   border-color: var(--border-default);
-  background: var(--bg-elevated);
 }
 
 .input {
@@ -34,8 +34,11 @@
 
 .action {
   font-size: 20px;
-  opacity: 0.5;
-  transition: opacity var(--transition-fast);
+  color: var(--text-muted);
+  transition: all var(--transition-fast);
 }
 
-.box:hover .action { opacity: 0.8; }
+.action:hover {
+  color: var(--color-primary);
+  transform: scale(1.1);
+}

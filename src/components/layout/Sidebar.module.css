@@ -106,9 +106,10 @@
 
 .userFooter {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0;
+  gap: var(--space-3);
   padding: var(--space-3) 0;
   border-radius: var(--radius-md);
   border-top: 1px solid var(--border-subtle);
@@ -117,6 +118,7 @@
 }
 
 .sidebar:not(.panelOpen):hover .userFooter {
+  flex-direction: row;
   justify-content: flex-start;
   padding: var(--space-3) 12px;
   padding-top: var(--space-4);
@@ -187,21 +189,29 @@
 }
 
 .logoutBtn {
-  opacity: 0;
-  width: 0;
-  padding: 0;
+  opacity: 1;
+  width: 36px;
+  height: 36px;
+  padding: 8px;
   margin: 0;
-  overflow: hidden;
-  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
   transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.logoutBtn:hover {
+  background: var(--bg-hover);
+  color: var(--color-error);
 }
 
 .sidebar:not(.panelOpen):hover .logoutBtn {
-  opacity: 1;
-  width: 36px;
-  padding: 8px;
   margin-left: auto;
-  pointer-events: auto;
 }
 
 @media (max-width: 768px) {

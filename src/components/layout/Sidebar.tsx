@@ -8,7 +8,7 @@ import toast from 'react-hot-toast';
 import styles from './Sidebar.module.css';
 import Avatar from '@/components/ui/Avatar';
 import Logo from '@/components/ui/Logo';
-import { Search, Bell, MessageSquare, Hash, Edit3, Send } from 'lucide-react';
+import { Search, Bell, MessageSquare, Hash, Edit3, Send, LogOut } from 'lucide-react';
 import { useState } from 'react';
 import SearchPanel from './SearchPanel';
 import NotificationPanel from './NotificationPanel';
@@ -141,23 +141,15 @@ export default function Sidebar({ profile }: SidebarProps) {
 
       {/* User Footer or Login */}
       {profile ? (
-        <div className={styles.userFooter}>
-          <Link href={`/profile/${profile.username}`} className={styles.userInfo}>
-            <Avatar profile={profile} size="sm" />
-            <div className={styles.userText}>
-              <span className={styles.userName}>{profile.full_name || profile.username}</span>
-              <span className={styles.userHandle}>@{profile.username}</span>
-            </div>
-          </Link>
+        <div style={{ marginTop: 'auto', paddingBottom: 'var(--space-4)' }}>
           <button
             id="btn-logout"
-            className={`btn btn-ghost btn-icon ${styles.logoutBtn}`}
+            className={styles.navItem}
             onClick={handleLogout}
-            title="Đăng xuất"
+            style={{ width: '100%' }}
           >
-            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
+            <span className={styles.navIcon}><LogOut size={26} strokeWidth={2} /></span>
+            <span className={styles.navLabel}>Đăng xuất</span>
           </button>
         </div>
       ) : (
