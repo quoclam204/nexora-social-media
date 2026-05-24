@@ -8,7 +8,10 @@ import toast from 'react-hot-toast';
 import styles from './Sidebar.module.css';
 import Avatar from '@/components/ui/Avatar';
 import Logo from '@/components/ui/Logo';
-import { Search, Bell, MessageSquare, Hash, PenSquare, Send } from 'lucide-react';
+import { Search, Bell, MessageSquare, Hash, Edit3, Send } from 'lucide-react';
+import { useState } from 'react';
+import SearchPanel from './SearchPanel';
+import NotificationPanel from './NotificationPanel';
 
 interface SidebarProps {
   profile: Profile | null;
@@ -61,6 +64,10 @@ export default function Sidebar({ profile }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
+  const [showSearchPanel, setShowSearchPanel] = useState(false);
+  const [showNotificationPanel, setShowNotificationPanel] = useState(false);
+
+  const isPanelOpen = showSearchPanel || showNotificationPanel;
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -70,7 +77,7 @@ export default function Sidebar({ profile }: SidebarProps) {
   };
 
   return (
-    <aside className={styles.sidebar}>
+    <aside className={`${styles.sidebar} ${isPanelOpen ? styles.panelOpen : ''}`}>
       {/* Logo */}
       <div className={styles.logoWrapper}>
         <Logo size="md" />
@@ -87,10 +94,21 @@ export default function Sidebar({ profile }: SidebarProps) {
               key={item.href}
               href={item.href}
               className={`${styles.navItem} ${isActive ? styles.active : ''}`}
+              onClick={(e) => {
+                if (item.href === '/search') {
+                  e.preventDefault();
+                  setShowSearchPanel(true);
+                  setShowNotificationPanel(false);
+                } else if (item.href === '/notifications' && profile) {
+                  e.preventDefault();
+                  setShowNotificationPanel(true);
+                  setShowSearchPanel(false);
+                }
+              }}
             >
               <span className={styles.navIcon}>
                 <Icon 
-                  size={22} 
+                  size={26} 
                   strokeWidth={isActive ? 2.5 : 2}
                   fill={isActive && (item.href === '/' || item.href === '/notifications') ? 'currentColor' : 'none'} 
                 />
@@ -105,7 +123,9 @@ export default function Sidebar({ profile }: SidebarProps) {
             href={`/profile/${profile.username}`}
             className={`${styles.navItem} ${pathname.startsWith('/profile') ? styles.active : ''}`}
           >
-            <Avatar profile={profile} size="sm" />
+            <span className={styles.navIcon}>
+              <Avatar profile={profile} size="xs" />
+            </span>
             <span className={styles.navLabel}>Trang cá nhân</span>
           </Link>
         )}
@@ -113,9 +133,9 @@ export default function Sidebar({ profile }: SidebarProps) {
 
       {/* Create Post Button */}
       {profile && (
-        <Link href="/?create=true" id="btn-create-post-sidebar" className={`btn btn-primary ${styles.createBtn}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-          <PenSquare size={18} />
-          <span>Tạo bài viết</span>
+        <Link href="/?create=true" id="btn-create-post-sidebar" className={styles.navItem}>
+          <span className={styles.navIcon}><Edit3 size={26} strokeWidth={2} /></span>
+          <span className={styles.navLabel}>Tạo bài viết</span>
         </Link>
       )}
 
@@ -131,7 +151,7 @@ export default function Sidebar({ profile }: SidebarProps) {
           </Link>
           <button
             id="btn-logout"
-            className={`btn btn-ghost btn-icon`}
+            className={`btn btn-ghost btn-icon ${styles.logoutBtn}`}
             onClick={handleLogout}
             title="Đăng xuất"
           >
@@ -147,6 +167,11 @@ export default function Sidebar({ profile }: SidebarProps) {
           </Link>
         </div>
       )}
+      {/* Search Panel */}
+      <SearchPanel isOpen={showSearchPanel} onClose={() => setShowSearchPanel(false)} />
+      
+      {/* Notification Panel */}
+      <NotificationPanel isOpen={showNotificationPanel} onClose={() => setShowNotificationPanel(false)} profile={profile} />
     </aside>
   );
 }

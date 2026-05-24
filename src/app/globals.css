@@ -89,7 +89,8 @@
   --transition-spring: 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
 
   /* Layout */
-  --sidebar-width: 260px;
+  --sidebar-width: 84px;
+  --sidebar-expanded-width: 260px;
   --right-panel-width: 320px;
   --feed-width: 600px;
   --header-height: 60px;

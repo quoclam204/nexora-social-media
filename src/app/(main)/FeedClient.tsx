@@ -7,6 +7,7 @@ import PostCard from '@/components/posts/PostCard';
 import CreatePostModal from '@/components/posts/CreatePostModal';
 import CreatePostBox from '@/components/posts/CreatePostBox';
 import FriendSuggestions from '@/components/profile/FriendSuggestions';
+import { Edit3, Inbox } from 'lucide-react';
 import styles from './feed.module.css';
 import { useSearchParams, useRouter } from 'next/navigation';
 
@@ -171,12 +172,12 @@ export default function FeedClient({ currentProfile }: FeedClientProps) {
           </div>
         ) : posts.length === 0 ? (
           <div className={styles.emptyState}>
-            <div className={styles.emptyIcon}>📭</div>
+            <div className={styles.emptyIcon}><Inbox size={48} strokeWidth={1.5} /></div>
             <h3>Chưa có bài viết nào</h3>
             <p>{activeTab === 'following' ? 'Hãy theo dõi người dùng để xem bài viết của họ' : 'Hãy là người đầu tiên đăng bài!'}</p>
             {currentProfile && (
-              <button className="btn btn-primary" onClick={() => setShowModal(true)}>
-                ✏️ Tạo bài viết đầu tiên
+              <button className="btn btn-primary" onClick={() => setShowModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Edit3 size={16} /> Tạo bài viết đầu tiên
               </button>
             )}
           </div>

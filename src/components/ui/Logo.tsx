@@ -30,7 +30,7 @@ export default function Logo({
           priority
         />
       </div>
-      {showText && <span className={styles.text}>Nexora</span>}
+      {showText && <span className={`${styles.text} logo-text`}>Nexora</span>}
     </div>
   );
 

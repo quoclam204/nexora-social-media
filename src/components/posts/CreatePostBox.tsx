@@ -2,6 +2,7 @@
 
 import { Profile } from '@/types';
 import Avatar from '@/components/ui/Avatar';
+import { Image as ImageIcon, Film, Smile } from 'lucide-react';
 import styles from './CreatePostBox.module.css';
 
 interface CreatePostBoxProps {
@@ -17,9 +18,9 @@ export default function CreatePostBox({ profile, onOpen }: CreatePostBoxProps) {
         <span>Bạn đang nghĩ gì?</span>
       </div>
       <div className={styles.actions}>
-        <span className={styles.action} title="Thêm ảnh">🖼️</span>
-        <span className={styles.action} title="Thêm video">🎬</span>
-        <span className={styles.action} title="Cảm xúc">😊</span>
+        <span className={styles.action} title="Thêm ảnh"><ImageIcon size={20} strokeWidth={1.5} /></span>
+        <span className={styles.action} title="Thêm video"><Film size={20} strokeWidth={1.5} /></span>
+        <span className={styles.action} title="Cảm xúc"><Smile size={20} strokeWidth={1.5} /></span>
       </div>
     </div>
   );

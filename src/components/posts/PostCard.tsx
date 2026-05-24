@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { Post, Profile, REACTION_EMOJIS, ReactionType } from '@/types';
-import { Heart, MessageCircle, Send } from 'lucide-react';
+import { Heart, MessageCircle, Send, Link as LinkIcon, Edit2, Trash2, AlertTriangle } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import Avatar from '@/components/ui/Avatar';
 import CommentsSection from '@/components/posts/CommentsSection';
@@ -161,21 +161,21 @@ export default function PostCard({ post, currentProfile, onDeleted, style }: Pos
           {showMenu && (
             <div className="dropdown-menu">
               <Link href={`/posts/${post.id}`} className="dropdown-item" onClick={() => setShowMenu(false)}>
-                🔗 Xem chi tiết
+                <LinkIcon size={16} /> Xem chi tiết
               </Link>
               {isOwner && (
                 <>
                   <button className="dropdown-item" onClick={() => { setIsEditing(true); setShowMenu(false); }}>
-                    ✏️ Chỉnh sửa bài viết
+                    <Edit2 size={16} /> Chỉnh sửa bài viết
                   </button>
                   <button className="dropdown-item danger" onClick={handleDelete}>
-                    🗑️ Xóa bài viết
+                    <Trash2 size={16} /> Xóa bài viết
                   </button>
                 </>
               )}
               {!isOwner && (
                 <button className="dropdown-item" onClick={() => { toast('Đã báo cáo!'); setShowMenu(false); }}>
-                  🚨 Báo cáo
+                  <AlertTriangle size={16} /> Báo cáo
                 </button>
               )}
             </div>

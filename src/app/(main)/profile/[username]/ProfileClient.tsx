@@ -7,6 +7,7 @@ import Avatar from '@/components/ui/Avatar';
 import PostCard from '@/components/posts/PostCard';
 import EditProfileModal from '@/components/profile/EditProfileModal';
 import toast from 'react-hot-toast';
+import { Edit3, Mail, Unlock, Ban, Link as LinkIcon, FileText, Image as ImageIcon, Inbox, MoreHorizontal } from 'lucide-react';
 import styles from './profile.module.css';
 import { useEffect } from 'react';
 
@@ -124,8 +125,9 @@ export default function ProfileClient({ profile: initialProfile, currentProfile 
                   id="btn-edit-profile"
                   className="btn btn-secondary"
                   onClick={() => setShowEdit(true)}
+                  style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
                 >
-                  ✏️ Chỉnh sửa trang cá nhân
+                  <Edit3 size={16} /> Chỉnh sửa trang cá nhân
                 </button>
               ) : (
                 <>
@@ -136,17 +138,17 @@ export default function ProfileClient({ profile: initialProfile, currentProfile 
                   >
                     {isFollowing ? '✓ Đang theo dõi' : '+ Theo dõi'}
                   </button>
-                  <a href={`/messages?user=${profile.username}`} className="btn btn-secondary">
-                    ✉️ Nhắn tin
+                  <a href={`/messages?user=${profile.username}`} className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Mail size={16} /> Nhắn tin
                   </a>
                   <div className="dropdown">
                     <button className="btn btn-secondary btn-icon" onClick={() => setShowMenu(!showMenu)}>
-                      <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 5c-.828 0-1.5-.672-1.5-1.5S11.172 2 12 2s1.5.672 1.5 1.5S12.828 5 12 5zm0 7c-.828 0-1.5-.672-1.5-1.5S11.172 9 12 9s1.5.672 1.5 1.5S12.828 12 12 12zm0 7c-.828 0-1.5-.672-1.5-1.5S11.172 16 12 16s1.5.672 1.5 1.5S12.828 19 12 19z"/></svg>
+                      <MoreHorizontal size={20} />
                     </button>
                     {showMenu && (
                       <div className="dropdown-menu">
                         <button className="dropdown-item danger" onClick={handleBlock}>
-                          {isBlocked ? '🔓 Bỏ chặn' : '🚫 Chặn người dùng'}
+                          {isBlocked ? <><Unlock size={16} /> Bỏ chặn</> : <><Ban size={16} /> Chặn người dùng</>}
                         </button>
                       </div>
                     )}
@@ -159,8 +161,8 @@ export default function ProfileClient({ profile: initialProfile, currentProfile 
           {profile.bio && <p className={styles.bio}>{profile.bio}</p>}
 
           {profile.website && (
-            <a href={profile.website} target="_blank" rel="noopener noreferrer" className={styles.website}>
-              🔗 {profile.website.replace(/^https?:\/\//, '')}
+            <a href={profile.website} target="_blank" rel="noopener noreferrer" className={styles.website} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              <LinkIcon size={14} /> {profile.website.replace(/^https?:\/\//, '')}
             </a>
           )}
 
@@ -183,11 +185,11 @@ export default function ProfileClient({ profile: initialProfile, currentProfile 
 
       {/* Tabs */}
       <div className={styles.tabs}>
-        <button className={`tab ${activeTab === 'posts' ? 'active' : ''}`} onClick={() => setActiveTab('posts')}>
-          📝 Bài viết
+        <button className={`tab ${activeTab === 'posts' ? 'active' : ''}`} onClick={() => setActiveTab('posts')} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <FileText size={16} /> Bài viết
         </button>
-        <button className={`tab ${activeTab === 'media' ? 'active' : ''}`} onClick={() => setActiveTab('media')}>
-          🖼️ Ảnh/Video
+        <button className={`tab ${activeTab === 'media' ? 'active' : ''}`} onClick={() => setActiveTab('media')} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <ImageIcon size={16} /> Ảnh/Video
         </button>
       </div>
 
@@ -199,13 +201,13 @@ export default function ProfileClient({ profile: initialProfile, currentProfile 
           </div>
         ) : isBlocked ? (
           <div className={styles.emptyState}>
-            <div style={{ fontSize: 48 }}>🚫</div>
+            <div style={{ color: 'var(--text-muted)' }}><Ban size={48} strokeWidth={1.5} /></div>
             <p>Bạn đã chặn người dùng này</p>
           </div>
         ) : activeTab === 'posts' ? (
           posts.length === 0 ? (
             <div className={styles.emptyState}>
-              <div style={{ fontSize: 48 }}>📭</div>
+              <div style={{ color: 'var(--text-muted)' }}><Inbox size={48} strokeWidth={1.5} /></div>
               <p>{isOwner ? 'Bạn chưa đăng bài nào' : `${profile.full_name || profile.username} chưa đăng bài nào`}</p>
             </div>
           ) : (
@@ -219,7 +221,7 @@ export default function ProfileClient({ profile: initialProfile, currentProfile 
           <div className={styles.mediaGrid}>
             {mediaPosts.length === 0 ? (
               <div className={styles.emptyState}>
-                <div style={{ fontSize: 48 }}>🖼️</div>
+                <div style={{ color: 'var(--text-muted)' }}><ImageIcon size={48} strokeWidth={1.5} /></div>
                 <p>Chưa có ảnh nào</p>
               </div>
             ) : (

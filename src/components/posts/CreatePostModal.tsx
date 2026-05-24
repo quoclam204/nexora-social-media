@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Post, Profile } from '@/types';
 import Avatar from '@/components/ui/Avatar';
 import toast from 'react-hot-toast';
+import { Image as ImageIcon, Smile, Rocket, Info, Lightbulb, Globe, Users, Lock, ChevronDown } from 'lucide-react';
 import styles from './CreatePostModal.module.css';
 import Image from 'next/image';
 
@@ -16,9 +17,9 @@ interface CreatePostModalProps {
 }
 
 const PRIVACY_OPTIONS = [
-  { value: 'public', label: 'Công khai', icon: '🌍' },
-  { value: 'friends', label: 'Bạn bè', icon: '👥' },
-  { value: 'private', label: 'Riêng tư', icon: '🔒' },
+  { value: 'public', label: 'Công khai', icon: Globe },
+  { value: 'friends', label: 'Bạn bè', icon: Users },
+  { value: 'private', label: 'Riêng tư', icon: Lock },
 ];
 
 const EMOJI_QUICK = ['😊', '😂', '❤️', '🔥', '👍', '😭', '🥺', '✨', '🎉', '💯'];
@@ -26,12 +27,25 @@ const EMOJI_QUICK = ['😊', '😂', '❤️', '🔥', '👍', '😭', '🥺', '
 export default function CreatePostModal({ profile, editPost, onClose, onCreated }: CreatePostModalProps) {
   const [content, setContent] = useState(editPost?.content || '');
   const [privacy, setPrivacy] = useState<'public' | 'friends' | 'private'>(editPost?.privacy || 'public');
+  const [showPrivacyDropdown, setShowPrivacyDropdown] = useState(false);
   const [mediaFiles, setMediaFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<{ url: string; type: 'image' | 'video' }[]>([]);
   const [loading, setLoading] = useState(false);
   const [showEmoji, setShowEmoji] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const privacyRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
+
+  // Close privacy dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (privacyRef.current && !privacyRef.current.contains(event.target as Node)) {
+        setShowPrivacyDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []).slice(0, 4);
@@ -171,18 +185,46 @@ export default function CreatePostModal({ profile, editPost, onClose, onCreated 
             <Avatar profile={profile} size="md" />
             <div>
               <div className={styles.authorName}>{profile?.full_name || profile?.username}</div>
-              <select
-                className={styles.privacySelect}
-                value={privacy}
-                onChange={(e) => setPrivacy(e.target.value as any)}
-                id="post-privacy"
-              >
-                {PRIVACY_OPTIONS.map(opt => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.icon} {opt.label}
-                  </option>
-                ))}
-              </select>
+              <div className={styles.privacyDropdownContainer} ref={privacyRef}>
+                <button
+                  className={styles.privacySelect}
+                  onClick={() => setShowPrivacyDropdown(!showPrivacyDropdown)}
+                  type="button"
+                >
+                  {(() => {
+                    const selectedOption = PRIVACY_OPTIONS.find(o => o.value === privacy) || PRIVACY_OPTIONS[0];
+                    const Icon = selectedOption.icon;
+                    return (
+                      <>
+                        <Icon size={14} />
+                        {selectedOption.label}
+                        <ChevronDown size={14} />
+                      </>
+                    );
+                  })()}
+                </button>
+                {showPrivacyDropdown && (
+                  <div className={styles.privacyDropdownMenu}>
+                    {PRIVACY_OPTIONS.map(opt => {
+                      const Icon = opt.icon;
+                      return (
+                        <button
+                          key={opt.value}
+                          className={`${styles.privacyOption} ${privacy === opt.value ? styles.privacyOptionActive : ''}`}
+                          onClick={() => {
+                            setPrivacy(opt.value as any);
+                            setShowPrivacyDropdown(false);
+                          }}
+                          type="button"
+                        >
+                          <Icon size={16} />
+                          {opt.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -238,7 +280,7 @@ export default function CreatePostModal({ profile, editPost, onClose, onCreated 
 
           {editPost && (editPost.image_urls || editPost.video_url) && previews.length === 0 && (
             <div className={styles.hashtagHint} style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)' }}>
-              <span>ℹ️</span>
+              <span style={{ display: 'flex', alignItems: 'center' }}><Info size={16} /></span>
               <span>Đang giữ nguyên media hiện tại của bài viết.</span>
             </div>
           )}
@@ -246,7 +288,7 @@ export default function CreatePostModal({ profile, editPost, onClose, onCreated 
           {/* Hashtag suggestions */}
           {content.includes('#') && (
             <div className={styles.hashtagHint}>
-              <span>💡</span>
+              <span style={{ display: 'flex', alignItems: 'center' }}><Lightbulb size={16} /></span>
               <span>Hashtags sẽ được tự động thêm vào bài viết</span>
             </div>
           )}
@@ -261,14 +303,14 @@ export default function CreatePostModal({ profile, editPost, onClose, onCreated 
               title="Thêm ảnh/video"
               disabled={!!editPost} // Disable changing media when editing for simplicity
             >
-              🖼️
+              <ImageIcon size={20} strokeWidth={1.5} />
             </button>
             <button
               className={`btn btn-ghost btn-icon ${styles.toolBtn}`}
               onClick={() => setShowEmoji(!showEmoji)}
               title="Emoji"
             >
-              😊
+              <Smile size={20} strokeWidth={1.5} />
             </button>
             <input
               ref={fileInputRef}
@@ -286,13 +328,18 @@ export default function CreatePostModal({ profile, editPost, onClose, onCreated 
             className={`btn btn-primary ${loading ? 'btn-loading' : ''}`}
             onClick={handleSubmit}
             disabled={loading || (!content.trim() && mediaFiles.length === 0 && !editPost?.image_urls && !editPost?.video_url)}
+            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
           >
             {loading ? (
               <>
                 <span className="animate-spin" style={{ display: 'block', width: 16, height: 16, border: '2px solid rgba(255,255,255,0.4)', borderTopColor: 'white', borderRadius: '50%' }} />
                 Đang lưu...
               </>
-            ) : editPost ? '✓ Lưu' : '🚀 Đăng bài'}
+            ) : editPost ? '✓ Lưu' : (
+              <>
+                <Rocket size={16} strokeWidth={2} /> Đăng bài
+              </>
+            )}
           </button>
         </div>
       </div>

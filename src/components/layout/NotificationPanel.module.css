@@ -1,0 +1,211 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: transparent;
+  z-index: 40;
+}
+
+.panel {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: var(--sidebar-width);
+  width: 380px;
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border-subtle);
+  box-shadow: 10px 0 20px rgba(0, 0, 0, 0.05);
+  z-index: 45;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(-100%);
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.panel.open {
+  transform: translateX(0);
+}
+
+.header {
+  padding: var(--space-4) var(--space-4) var(--space-2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.filters {
+  display: flex;
+  gap: var(--space-2);
+  padding: 0 var(--space-4) var(--space-2);
+}
+
+.filterPill {
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: var(--font-sm);
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  background: transparent;
+  color: var(--text-primary);
+  transition: all 0.2s;
+}
+
+.filterPill:hover {
+  background: var(--bg-hover);
+}
+
+.filterPill.active {
+  background: #eaf3ff; /* Light blue */
+  color: #1877f2; /* Facebook blue */
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-4);
+  margin-top: var(--space-2);
+}
+
+.sectionHeader h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.seeAll {
+  font-size: 14px;
+  color: #1877f2;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.seeAll:hover {
+  text-decoration: underline;
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: var(--space-8) var(--space-5);
+  color: var(--text-muted);
+  font-size: var(--font-sm);
+  text-align: center;
+  gap: var(--space-4);
+}
+
+.notificationList {
+  display: flex;
+  flex-direction: column;
+}
+
+.notificationItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  text-decoration: none;
+  transition: background var(--transition-fast);
+  border-radius: 8px;
+  margin: 0 var(--space-2);
+}
+
+.notificationItem:hover {
+  background: var(--bg-hover);
+}
+
+.notificationItem.unread {
+  background: transparent;
+}
+
+.avatarWrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.actionIcon {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  border: 2px solid var(--bg-surface);
+}
+
+.actionIcon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.iconLike {
+  background: #e41e3f; /* Red for like */
+}
+
+.iconComment {
+  background: #20b038; /* Green for comment */
+}
+
+.iconFollow {
+  background: #1877f2; /* Blue for follow/friend */
+}
+
+.notificationInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.notificationText {
+  font-size: 15px;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.notificationTime {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.notificationItem.unread .notificationTime {
+  color: #1877f2;
+  font-weight: 600;
+}
+
+.unreadDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #1877f2;
+  flex-shrink: 0;
+  margin-left: var(--space-2);
+}
+
+@media (max-width: 768px) {
+  .panel {
+    left: 0;
+    width: 100%;
+    z-index: 200;
+  }
+}

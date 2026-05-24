@@ -8,20 +8,39 @@
   border-right: 1px solid var(--border-subtle);
   display: flex;
   flex-direction: column;
-  padding: var(--space-5);
+  padding: var(--space-5) 12px;
   gap: var(--space-2);
   z-index: 50;
+  overflow-x: hidden;
   overflow-y: auto;
+  transition: width 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Empty class to allow targeting when panel is open */
+.panelOpen {}
+
+.sidebar:not(.panelOpen):hover {
+  width: var(--sidebar-expanded-width);
+  box-shadow: var(--shadow-lg);
 }
 
 .logoWrapper {
-  padding: var(--space-3) var(--space-2);
+  padding: var(--space-3) 0;
   margin-bottom: var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar:not(.panelOpen):hover .logoWrapper {
+  padding: var(--space-3) 12px;
+  justify-content: flex-start;
 }
 
 .nav {
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: var(--space-1);
   flex: 1;
 }
@@ -29,8 +48,9 @@
 .navItem {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  padding: 12px var(--space-3);
+  justify-content: center;
+  gap: 0;
+  padding: 12px 0;
   border-radius: var(--radius-md);
   color: var(--text-secondary);
   font-size: var(--font-base);
@@ -40,21 +60,29 @@
   cursor: pointer;
 }
 
+.sidebar:not(.panelOpen):hover .navItem {
+  justify-content: flex-start;
+  padding: 12px 16px;
+  gap: var(--space-3);
+}
+
 .navItem:hover {
   background: var(--bg-hover);
   color: var(--text-primary);
 }
 
 .navItem.active {
-  background: var(--bg-active);
+  background: transparent;
   color: var(--color-primary-light);
   font-weight: 600;
 }
 
 .navIcon {
-  font-size: 20px;
-  width: 24px;
-  text-align: center;
+  font-size: 24px;
+  width: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
 }
 
@@ -62,35 +90,53 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  opacity: 0;
+  width: 0;
+  transform: translateX(-10px);
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-.createBtn {
-  width: 100%;
-  padding: 12px;
-  border-radius: var(--radius-md);
-  font-size: var(--font-sm);
-  margin: var(--space-3) 0;
+.sidebar:not(.panelOpen):hover .navLabel {
+  opacity: 1;
+  width: auto;
+  transform: translateX(0);
 }
+
+
 
 .userFooter {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-3);
+  justify-content: center;
+  gap: 0;
+  padding: var(--space-3) 0;
   border-radius: var(--radius-md);
   border-top: 1px solid var(--border-subtle);
   margin-top: auto;
   padding-top: var(--space-4);
 }
 
+.sidebar:not(.panelOpen):hover .userFooter {
+  justify-content: flex-start;
+  padding: var(--space-3) 12px;
+  padding-top: var(--space-4);
+  gap: var(--space-2);
+}
+
 .userInfo {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  justify-content: center;
+  gap: 0;
   flex: 1;
   min-width: 0;
   text-decoration: none;
   transition: opacity var(--transition-fast);
+}
+
+.sidebar:not(.panelOpen):hover .userInfo {
+  justify-content: flex-start;
+  gap: var(--space-3);
 }
 
 .userInfo:hover { opacity: 0.8; }
@@ -99,6 +145,15 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
+  opacity: 0;
+  width: 0;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.sidebar:not(.panelOpen):hover .userText {
+  opacity: 1;
+  width: auto;
 }
 
 .userName {
@@ -116,6 +171,37 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* Hide logo text when collapsed */
+.logoWrapper :global(.logo-text) {
+  opacity: 0;
+  width: 0;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.sidebar:not(.panelOpen):hover .logoWrapper :global(.logo-text) {
+  opacity: 1;
+  width: auto;
+}
+
+.logoutBtn {
+  opacity: 0;
+  width: 0;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.sidebar:not(.panelOpen):hover .logoutBtn {
+  opacity: 1;
+  width: 36px;
+  padding: 8px;
+  margin-left: auto;
+  pointer-events: auto;
 }
 
 @media (max-width: 768px) {

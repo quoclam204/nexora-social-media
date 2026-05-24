@@ -70,7 +70,7 @@ export default function Avatar({ profile, size = 'md', className, isOnline }: Av
   };
 
   return (
-    <div style={{ position: 'relative', display: 'inline-block' }}>
+    <div style={{ position: 'relative', display: 'inline-block', flexShrink: 0 }}>
       {renderContent()}
       {isOnline && (
         <div
