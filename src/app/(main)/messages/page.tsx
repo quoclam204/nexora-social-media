@@ -114,41 +114,103 @@ export default function MessagesPage() {
     }
   };
 
-  const fetchConversations = async (userId: string, targetUsername?: string | null) => {
-    const { data } = await supabase
-      .from('conversations')
-      .select('*')
-      .contains('participants', [userId])
-      .order('last_message_at', { ascending: false });
+    const fetchConversations = async (userId: string, targetUsername?: string | null) => {
+      // 1. Fetch conversations
+      const { data: convData } = await supabase
+        .from('conversations')
+        .select('*')
+        .contains('participants', [userId])
+        .order('last_message_at', { ascending: false });
 
-    if (data) {
+      // 2. Fetch friends
+      const { data: following } = await supabase.from('follows').select('following_id').eq('follower_id', userId);
+      const { data: followers } = await supabase.from('follows').select('follower_id').eq('following_id', userId);
+      
+      let friendIds: string[] = [];
+      if (following && followers) {
+        const followingIds = following.map(f => f.following_id);
+        const followerIds = followers.map(f => f.follower_id);
+        friendIds = followingIds.filter(id => followerIds.includes(id));
+      }
+
       let convToSelect = null;
-      // Fetch other user profiles
+      const existingConvs = convData || [];
+
+      // Process existing conversations
       const enriched = await Promise.all(
-        data.map(async (conv) => {
+        existingConvs.map(async (conv) => {
           const otherId = conv.participants.find((id: string) => id !== userId);
+          const isFriend = friendIds.includes(otherId);
+
           const { data: otherUser } = await supabase.from('profiles').select('*').eq('id', otherId).single();
+          const isTarget = targetUsername && otherUser?.username === targetUsername;
+
+          const { data: receivedMsgs } = await supabase.from('messages')
+            .select('id')
+            .eq('conversation_id', conv.id)
+            .eq('sender_id', otherId)
+            .limit(1);
+          const hasReceivedMessage = receivedMsgs && receivedMsgs.length > 0;
+
+          // Show if isFriend OR has received a message OR is targeted
+          const shouldShow = isFriend || hasReceivedMessage || isTarget;
+          
+          if (!shouldShow) return null;
+
           const { count: unread } = await supabase.from('messages')
             .select('*', { count: 'exact', head: true })
             .eq('conversation_id', conv.id)
             .eq('read', false)
             .neq('sender_id', userId);
-            
+
           const enrichedConv = { ...conv, other_user: otherUser, unread_count: unread ?? 0 };
-          if (targetUsername && otherUser?.username === targetUsername) {
+          if (isTarget) {
             convToSelect = enrichedConv;
           }
           return enrichedConv;
         })
       );
-      setConversations(enriched as any);
+      
+      let finalConvs = enriched.filter(Boolean) as Conversation[];
+
+      // 3. Add friends without conversation
+      for (const friendId of friendIds) {
+        const hasConv = finalConvs.some(c => c.participants.includes(friendId));
+        if (!hasConv) {
+          const { data: friendProfile } = await supabase.from('profiles').select('*').eq('id', friendId).single();
+          if (friendProfile) {
+            const mockConv = {
+              id: `mock_${friendId}`,
+              participants: [userId, friendId],
+              created_at: new Date().toISOString(),
+              last_message: null,
+              last_message_at: null,
+              other_user: friendProfile,
+              unread_count: 0
+            };
+            finalConvs.push(mockConv as any);
+            
+            if (targetUsername && friendProfile.username === targetUsername) {
+               convToSelect = mockConv;
+            }
+          }
+        }
+      }
+
+      // Sort
+      finalConvs.sort((a, b) => {
+        const timeA = a.last_message_at ? new Date(a.last_message_at).getTime() : 0;
+        const timeB = b.last_message_at ? new Date(b.last_message_at).getTime() : 0;
+        return timeB - timeA;
+      });
+
+      setConversations(finalConvs);
       
       if (convToSelect) {
         selectConversation(convToSelect as any);
       }
-    }
-    setLoading(false);
-  };
+      setLoading(false);
+    };
 
   const fetchMessages = async (convId: string) => {
     const { data } = await supabase
@@ -167,8 +229,30 @@ export default function MessagesPage() {
   };
 
   const selectConversation = async (conv: Conversation) => {
+    let actualConvId = conv.id;
+    
+    if (conv.id.startsWith('mock_')) {
+      const friendId = conv.participants.find(id => id !== currentProfile!.id);
+      
+      const { data: existingConvs } = await supabase.from('conversations')
+        .select('*')
+        .contains('participants', [currentProfile!.id, friendId]);
+
+      if (existingConvs && existingConvs.length > 0) {
+        actualConvId = existingConvs[0].id;
+      } else {
+        const { data: newConv } = await supabase.from('conversations').insert({
+          participants: [currentProfile!.id, friendId],
+          last_message_at: new Date().toISOString()
+        }).select().single();
+        if (newConv) actualConvId = newConv.id;
+      }
+      
+      conv = { ...conv, id: actualConvId };
+    }
+
     setSelectedConv(conv);
-    await fetchMessages(conv.id);
+    await fetchMessages(actualConvId);
 
     if (channelRef.current) {
       supabase.removeChannel(channelRef.current);
@@ -176,9 +260,9 @@ export default function MessagesPage() {
 
     // Subscribe to new messages
     const channel = supabase
-      .channel(`messages:${conv.id}`)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conv.id}` },
-        () => fetchMessages(conv.id))
+      .channel(`messages:${actualConvId}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${actualConvId}` },
+        () => fetchMessages(actualConvId))
       .subscribe();
 
     channelRef.current = channel;

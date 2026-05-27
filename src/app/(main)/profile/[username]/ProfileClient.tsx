@@ -22,6 +22,7 @@ export default function ProfileClient({ profile: initialProfile, currentProfile 
   const [loading, setLoading] = useState(true);
   const [isFollowing, setIsFollowing] = useState(initialProfile.is_following ?? false);
   const [followersCount, setFollowersCount] = useState(initialProfile.followers_count ?? 0);
+  const [friendsCount, setFriendsCount] = useState(initialProfile.friends_count ?? 0);
   const [showEdit, setShowEdit] = useState(false);
   const [activeTab, setActiveTab] = useState<'posts' | 'media'>('posts');
   const [isBlocked, setIsBlocked] = useState(false);
@@ -63,6 +64,7 @@ export default function ProfileClient({ profile: initialProfile, currentProfile 
         .eq('follower_id', currentProfile.id).eq('following_id', profile.id);
       setIsFollowing(false);
       setFollowersCount(prev => prev - 1);
+      if (initialProfile.is_followed_by) setFriendsCount(prev => prev - 1);
       toast('Đã bỏ theo dõi');
     } else {
       await supabase.from('follows').insert({ follower_id: currentProfile.id, following_id: profile.id });
@@ -71,6 +73,7 @@ export default function ProfileClient({ profile: initialProfile, currentProfile 
       });
       setIsFollowing(true);
       setFollowersCount(prev => prev + 1);
+      if (initialProfile.is_followed_by) setFriendsCount(prev => prev + 1);
       toast.success(`Đang theo dõi @${profile.username}`);
     }
   };
@@ -92,6 +95,7 @@ export default function ProfileClient({ profile: initialProfile, currentProfile 
         await supabase.from('follows').delete().eq('follower_id', currentProfile.id).eq('following_id', profile.id);
         setIsFollowing(false);
         setFollowersCount(prev => Math.max(0, prev - 1));
+        if (initialProfile.is_followed_by) setFriendsCount(prev => Math.max(0, prev - 1));
       }
       setIsBlocked(true);
       toast.success('Đã chặn người dùng này');
@@ -136,7 +140,7 @@ export default function ProfileClient({ profile: initialProfile, currentProfile 
                     className={`btn ${isFollowing ? 'btn-secondary' : 'btn-primary'}`}
                     onClick={handleFollow}
                   >
-                    {isFollowing ? '✓ Đang theo dõi' : '+ Theo dõi'}
+                    {isFollowing ? (initialProfile.is_followed_by ? '✓ Bạn bè' : '✓ Đang theo dõi') : '+ Theo dõi'}
                   </button>
                   <a href={`/messages?user=${profile.username}`} className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <Mail size={16} /> Nhắn tin
@@ -178,6 +182,10 @@ export default function ProfileClient({ profile: initialProfile, currentProfile 
             <div className={styles.stat}>
               <span className={styles.statNum}>{profile.following_count ?? 0}</span>
               <span className={styles.statLabel}>Đang theo dõi</span>
+            </div>
+            <div className={styles.stat}>
+              <span className={styles.statNum}>{friendsCount}</span>
+              <span className={styles.statLabel}>Bạn bè</span>
             </div>
           </div>
         </div>

@@ -41,6 +41,8 @@ export default function ChatWidget({ profile }: ChatWidgetProps) {
   const [showStickerPicker, setShowStickerPicker] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [isRecording, setIsRecording] = useState(false);
+  const [showFriends, setShowFriends] = useState(false);
+  const [friends, setFriends] = useState<Profile[]>([]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -56,22 +58,74 @@ export default function ChatWidget({ profile }: ChatWidgetProps) {
     if (!profile) return;
 
     const fetchConversations = async () => {
-      const { data } = await supabase
+      // Fetch existing conversations
+      const { data: convData } = await supabase
         .from('conversations')
         .select('*')
         .contains('participants', [profile.id])
         .order('last_message_at', { ascending: false });
 
-      if (data) {
-        const enriched = await Promise.all(
-          data.map(async (conv) => {
-            const otherId = conv.participants.find((id: string) => id !== profile.id);
-            const { data: otherUser } = await supabase.from('profiles').select('*').eq('id', otherId).single();
-            return { ...conv, other_user: otherUser };
-          })
-        );
-        setConversations(enriched as any);
+      // Fetch friends
+      const { data: following } = await supabase.from('follows').select('following_id').eq('follower_id', profile.id);
+      const { data: followers } = await supabase.from('follows').select('follower_id').eq('following_id', profile.id);
+      
+      let friendIds: string[] = [];
+      if (following && followers) {
+        const followingIds = following.map(f => f.following_id);
+        const followerIds = followers.map(f => f.follower_id);
+        friendIds = followingIds.filter(id => followerIds.includes(id));
       }
+
+      const existingConvs = convData || [];
+      const enriched = await Promise.all(
+        existingConvs.map(async (conv) => {
+          const otherId = conv.participants.find((id: string) => id !== profile.id);
+          const isFriend = friendIds.includes(otherId);
+
+          const { data: receivedMsgs } = await supabase.from('messages')
+            .select('id')
+            .eq('conversation_id', conv.id)
+            .eq('sender_id', otherId)
+            .limit(1);
+          const hasReceivedMessage = receivedMsgs && receivedMsgs.length > 0;
+
+          // Only show if is friend OR has received a message
+          const shouldShow = isFriend || hasReceivedMessage;
+          if (!shouldShow) return null;
+
+          const { data: otherUser } = await supabase.from('profiles').select('*').eq('id', otherId).single();
+          return { ...conv, other_user: otherUser };
+        })
+      );
+
+      let finalConvs = enriched.filter(Boolean) as Conversation[];
+
+      // Add friends without conversation
+      for (const friendId of friendIds) {
+        const hasConv = finalConvs.some(c => c.participants.includes(friendId));
+        if (!hasConv) {
+          const { data: friendProfile } = await supabase.from('profiles').select('*').eq('id', friendId).single();
+          if (friendProfile) {
+            finalConvs.push({
+              id: `mock_${friendId}`,
+              participants: [profile.id, friendId],
+              created_at: new Date().toISOString(),
+              last_message: null,
+              last_message_at: null,
+              other_user: friendProfile
+            } as any);
+          }
+        }
+      }
+
+      // Sort by last message time, fallback to created_at
+      finalConvs.sort((a, b) => {
+        const timeA = a.last_message_at ? new Date(a.last_message_at).getTime() : 0;
+        const timeB = b.last_message_at ? new Date(b.last_message_at).getTime() : 0;
+        return timeB - timeA;
+      });
+
+      setConversations(finalConvs);
     };
 
     fetchConversations();
@@ -101,18 +155,89 @@ export default function ChatWidget({ profile }: ChatWidgetProps) {
     }
   };
 
+  const fetchFriends = async () => {
+    if (!profile) return;
+    const { data: following } = await supabase.from('follows').select('following_id').eq('follower_id', profile.id);
+    const { data: followers } = await supabase.from('follows').select('follower_id').eq('following_id', profile.id);
+    
+    if (following && followers) {
+      const followingIds = following.map(f => f.following_id);
+      const followerIds = followers.map(f => f.follower_id);
+      const mutualIds = followingIds.filter(id => followerIds.includes(id));
+      
+      if (mutualIds.length > 0) {
+        const { data: friendsData } = await supabase.from('profiles').select('*').in('id', mutualIds);
+        if (friendsData) setFriends(friendsData);
+      } else {
+        setFriends([]);
+      }
+    }
+  };
+
+  const handleStartNewChat = async (friend: Profile) => {
+    if (!profile) return;
+    const existing = conversations.find(c => c.other_user?.id === friend.id);
+    if (existing) {
+      handleSelectConv(existing);
+      setShowFriends(false);
+      return;
+    }
+
+    const { data: existingConvs } = await supabase.from('conversations')
+      .select('*')
+      .contains('participants', [profile.id, friend.id]);
+
+    let convId;
+    if (existingConvs && existingConvs.length > 0) {
+      convId = existingConvs[0].id;
+    } else {
+      const { data: newConv } = await supabase.from('conversations').insert({
+        participants: [profile.id, friend.id],
+        last_message_at: new Date().toISOString()
+      }).select().single();
+      if (newConv) convId = newConv.id;
+    }
+
+    if (convId) {
+      handleSelectConv({ id: convId, participants: [profile.id, friend.id], other_user: friend } as any);
+    }
+    setShowFriends(false);
+  };
+
   const handleSelectConv = async (conv: Conversation) => {
+    let actualConvId = conv.id;
+
+    if (conv.id.startsWith('mock_')) {
+      const friendId = conv.participants.find(id => id !== profile!.id);
+      
+      const { data: existingConvs } = await supabase.from('conversations')
+        .select('*')
+        .contains('participants', [profile!.id, friendId]);
+
+      if (existingConvs && existingConvs.length > 0) {
+        actualConvId = existingConvs[0].id;
+      } else {
+        const { data: newConv } = await supabase.from('conversations').insert({
+          participants: [profile!.id, friendId],
+          last_message_at: new Date().toISOString()
+        }).select().single();
+        if (newConv) actualConvId = newConv.id;
+      }
+      
+      conv = { ...conv, id: actualConvId };
+    }
+
     setSelectedConv(conv);
-    await fetchMessages(conv.id);
+    await fetchMessages(actualConvId);
 
     if (channelRef.current) {
       supabase.removeChannel(channelRef.current);
     }
 
     const channel = supabase
-      .channel(`widget_messages:${conv.id}`)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conv.id}` },
-        () => fetchMessages(conv.id))
+      .channel(`widget_messages:${actualConvId}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${actualConvId}` },
+        () => fetchMessages(actualConvId))
       .subscribe();
 
     channelRef.current = channel;
@@ -318,6 +443,13 @@ export default function ChatWidget({ profile }: ChatWidgetProps) {
               </div>
             </Link>
           </div>
+        ) : showFriends ? (
+          <div className={styles.headerLeft}>
+            <button className={styles.iconBtn} onClick={() => setShowFriends(false)}>
+              <ChevronLeft size={20} />
+            </button>
+            <h3 className={styles.title}>Bạn bè</h3>
+          </div>
         ) : (
           <h3 className={styles.title}>Tin nhắn</h3>
         )}
@@ -472,6 +604,23 @@ export default function ChatWidget({ profile }: ChatWidgetProps) {
                 </div>
               </form>
             </div>
+          ) : showFriends ? (
+            <div className={styles.convList}>
+              {friends.length === 0 ? (
+                <div className={styles.emptyState}>
+                  <p>Chưa có bạn bè nào</p>
+                </div>
+              ) : (
+                friends.map(friend => (
+                  <div key={friend.id} className={styles.convItem} onClick={() => handleStartNewChat(friend)}>
+                    <Avatar profile={friend} size="md" isOnline={isOnline(friend.id)} />
+                    <div className={styles.convInfo}>
+                      <div className={styles.convName}>{friend.full_name || friend.username}</div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           ) : (
             <>
               {conversations.length === 0 ? (
@@ -487,14 +636,22 @@ export default function ChatWidget({ profile }: ChatWidgetProps) {
                       <div className={styles.convInfo}>
                         <div className={styles.convName}>{conv.other_user?.full_name || conv.other_user?.username}</div>
                         <div className={styles.convTime}>
-                          Hoạt động {conv.other_user?.last_seen ? formatDistanceToNow(new Date(conv.other_user.last_seen), { locale: vi }) : 'gần đây'} trước
+                          {isOnline(conv.other_user?.id || '') 
+                            ? 'Đang hoạt động' 
+                            : `Hoạt động ${conv.other_user?.last_seen ? formatDistanceToNow(new Date(conv.other_user.last_seen), { locale: vi }) : 'gần đây'} trước`}
                         </div>
                       </div>
                     </div>
                   ))}
                 </div>
               )}
-              <button className={styles.fab}>
+              <button 
+                className={styles.fab} 
+                onClick={() => {
+                  setShowFriends(true);
+                  fetchFriends();
+                }}
+              >
                 <Edit size={20} />
               </button>
             </>

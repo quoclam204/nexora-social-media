@@ -12,6 +12,8 @@ export interface Profile {
   following_count?: number;
   posts_count?: number;
   is_following?: boolean;
+  is_followed_by?: boolean;
+  friends_count?: number;
 }
 
 export interface Post {

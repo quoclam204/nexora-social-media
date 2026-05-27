@@ -131,29 +131,27 @@ export default function Sidebar({ profile }: SidebarProps) {
         )}
       </nav>
 
-      {/* Create Post Button */}
-      {profile && (
-        <Link href="/?create=true" id="btn-create-post-sidebar" className={styles.navItem}>
-          <span className={styles.navIcon}><Edit3 size={26} strokeWidth={2} /></span>
-          <span className={styles.navLabel}>Tạo bài viết</span>
-        </Link>
-      )}
+      {/* Bottom Actions */}
+      <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 'var(--space-1)', paddingBottom: 'var(--space-4)' }}>
+        {profile && (
+          <Link href="/?create=true" id="btn-create-post-sidebar" className={styles.navItem}>
+            <span className={styles.navIcon}><Edit3 size={26} strokeWidth={2} /></span>
+            <span className={styles.navLabel}>Tạo bài viết</span>
+          </Link>
+        )}
 
-      {/* User Footer or Login */}
-      {profile ? (
-        <div style={{ marginTop: 'auto', paddingBottom: 'var(--space-4)' }}>
-          <button
+        {profile ? (
+          <div
             id="btn-logout"
             className={styles.navItem}
             onClick={handleLogout}
             style={{ width: '100%' }}
+            role="button"
           >
             <span className={styles.navIcon}><LogOut size={26} strokeWidth={2} /></span>
             <span className={styles.navLabel}>Đăng xuất</span>
-          </button>
-        </div>
-      ) : (
-        <div style={{ marginTop: 'auto', paddingBottom: 'var(--space-4)' }}>
+          </div>
+        ) : (
           <Link
             href="/login"
             className={styles.navItem}
@@ -162,8 +160,8 @@ export default function Sidebar({ profile }: SidebarProps) {
             <span className={styles.navIcon}><UserCircle size={26} strokeWidth={2} /></span>
             <span className={styles.navLabel}>Đăng nhập</span>
           </Link>
-        </div>
-      )}
+        )}
+      </div>
       {/* Search Panel */}
       <SearchPanel isOpen={showSearchPanel} onClose={() => setShowSearchPanel(false)} />
 

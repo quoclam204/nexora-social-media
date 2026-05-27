@@ -33,20 +33,34 @@ export default async function ProfilePage({ params }: Props) {
     ? await supabase.from('profiles').select('*').eq('id', user.id).single()
     : { data: null };
 
-  // Follower counts
-  const [{ count: followersCount }, { count: followingCount }, { count: postsCount }] = await Promise.all([
-    supabase.from('follows').select('*', { count: 'exact', head: true }).eq('following_id', profile.id),
-    supabase.from('follows').select('*', { count: 'exact', head: true }).eq('follower_id', profile.id),
+  // Fetch followers and following arrays to calculate intersection (friends)
+  const [{ data: followersData }, { data: followingData }, { count: postsCount }] = await Promise.all([
+    supabase.from('follows').select('follower_id').eq('following_id', profile.id),
+    supabase.from('follows').select('following_id').eq('follower_id', profile.id),
     supabase.from('posts').select('*', { count: 'exact', head: true }).eq('user_id', profile.id),
   ]);
 
-  const isFollowing = currentProfile
-    ? !!(await supabase.from('follows').select('follower_id').eq('follower_id', currentProfile.id).eq('following_id', profile.id).single()).data
-    : false;
+  const followerIds = new Set((followersData || []).map(f => f.follower_id));
+  const followingIds = new Set((followingData || []).map(f => f.following_id));
+  
+  const followersCount = followerIds.size;
+  const followingCount = followingIds.size;
+  const friendsCount = [...followingIds].filter(id => followerIds.has(id)).length;
+
+  const isFollowing = currentProfile ? followingIds.has(currentProfile.id) : false;
+  const isFollowedBy = currentProfile ? followerIds.has(currentProfile.id) : false;
 
   return (
     <ProfileClient
-      profile={{ ...profile, followers_count: followersCount ?? 0, following_count: followingCount ?? 0, posts_count: postsCount ?? 0, is_following: isFollowing }}
+      profile={{ 
+        ...profile, 
+        followers_count: followersCount, 
+        following_count: followingCount, 
+        posts_count: postsCount ?? 0, 
+        is_following: isFollowing,
+        is_followed_by: isFollowedBy,
+        friends_count: friendsCount
+      }}
       currentProfile={currentProfile}
     />
   );
