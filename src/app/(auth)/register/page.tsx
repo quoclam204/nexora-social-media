@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { getURL } from '@/lib/supabase/utils';
+import { Eye, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
 import styles from '../login/login.module.css';
 
@@ -13,6 +14,8 @@ export default function RegisterPage() {
   const supabase = createClient();
   const [loading, setLoading] = useState(false);
   const [oauthLoading, setOauthLoading] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [form, setForm] = useState({
     email: '',
     password: '',
@@ -133,14 +136,24 @@ export default function RegisterPage() {
 
         <div className="form-group">
           <label className="form-label" htmlFor="reg-password">Mật khẩu</label>
-          <input id="reg-password" type="password" className="form-input" placeholder="Ít nhất 6 ký tự" value={form.password}
-            onChange={(e) => setForm({ ...form, password: e.target.value })} required autoComplete="new-password" />
+          <div className={styles.inputWrapper}>
+            <input id="reg-password" type={showPassword ? 'text' : 'password'} className="form-input" placeholder="Ít nhất 6 ký tự" value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })} required autoComplete="new-password" style={{ paddingRight: '40px' }} />
+            <button type="button" className={styles.eyeBtn} onClick={() => setShowPassword(!showPassword)}>
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
         </div>
 
         <div className="form-group">
           <label className="form-label" htmlFor="confirm-password">Xác nhận mật khẩu</label>
-          <input id="confirm-password" type="password" className="form-input" placeholder="••••••••" value={form.confirmPassword}
-            onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })} required autoComplete="new-password" />
+          <div className={styles.inputWrapper}>
+            <input id="confirm-password" type={showConfirmPassword ? 'text' : 'password'} className="form-input" placeholder="••••••••" value={form.confirmPassword}
+              onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })} required autoComplete="new-password" style={{ paddingRight: '40px' }} />
+            <button type="button" className={styles.eyeBtn} onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+              {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
         </div>
 
         <button id="btn-submit-register" type="submit" className={`btn btn-primary w-full ${loading ? 'btn-loading' : ''}`}

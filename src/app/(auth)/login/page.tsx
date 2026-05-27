@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { getURL } from '@/lib/supabase/utils';
+import { Eye, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
 import styles from './login.module.css';
 
@@ -13,6 +14,7 @@ export default function LoginPage() {
   const supabase = createClient();
   const [loading, setLoading] = useState(false);
   const [oauthLoading, setOauthLoading] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({ email: '', password: '' });
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -118,16 +120,27 @@ export default function LoginPage() {
               Quên mật khẩu?
             </Link>
           </div>
-          <input
-            id="password"
-            type="password"
-            className="form-input"
-            placeholder="••••••••"
-            value={form.password}
-            onChange={(e) => setForm({ ...form, password: e.target.value })}
-            required
-            autoComplete="current-password"
-          />
+          <div className={styles.inputWrapper}>
+            <input
+              id="password"
+              type={showPassword ? 'text' : 'password'}
+              className="form-input"
+              placeholder="••••••••"
+              value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              required
+              autoComplete="current-password"
+              style={{ paddingRight: '40px' }}
+            />
+            <button
+              type="button"
+              className={styles.eyeBtn}
+              onClick={() => setShowPassword(!showPassword)}
+              aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
         </div>
 
         <button

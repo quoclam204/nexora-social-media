@@ -1,8 +1,5 @@
 'use client';
 
-export const dynamic = 'force-dynamic';
-
-
 import { useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
@@ -21,7 +18,7 @@ export default function ForgotPasswordPage() {
     setLoading(true);
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${getURL()}auth/update-password`,
+      redirectTo: `${getURL()}auth/callback?next=/update-password`,
     });
 
     if (error) {

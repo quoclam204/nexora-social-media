@@ -107,10 +107,10 @@ export default function Sidebar({ profile }: SidebarProps) {
               }}
             >
               <span className={styles.navIcon}>
-                <Icon 
-                  size={26} 
+                <Icon
+                  size={26}
                   strokeWidth={isActive ? 2.5 : 2}
-                  fill={isActive && (item.href === '/' || item.href === '/notifications') ? 'currentColor' : 'none'} 
+                  fill={isActive && (item.href === '/' || item.href === '/notifications') ? 'currentColor' : 'none'}
                 />
               </span>
               <span className={styles.navLabel}>{item.label}</span>
@@ -166,7 +166,7 @@ export default function Sidebar({ profile }: SidebarProps) {
       )}
       {/* Search Panel */}
       <SearchPanel isOpen={showSearchPanel} onClose={() => setShowSearchPanel(false)} />
-      
+
       {/* Notification Panel */}
       <NotificationPanel isOpen={showNotificationPanel} onClose={() => setShowNotificationPanel(false)} profile={profile} />
     </aside>
