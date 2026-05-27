@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/client';
 import { getURL } from '@/lib/supabase/utils';
 import { Eye, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
-import styles from '../login/login.module.css';
+import styles from './register.module.css';
 
 export default function RegisterPage() {
   const router = useRouter();

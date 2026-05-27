@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { getURL } from '@/lib/supabase/utils';
 import toast from 'react-hot-toast';
-import styles from '../login/login.module.css';
+import styles from '../register/register.module.css';
 
 export default function ForgotPasswordPage() {
   const supabase = createClient();
