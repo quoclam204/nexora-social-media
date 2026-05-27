@@ -17,7 +17,9 @@
 }
 
 /* Empty class to allow targeting when panel is open */
-.panelOpen {}
+.panelOpen {
+  outline: none;
+}
 
 .sidebar:not(.panelOpen):hover {
   width: var(--sidebar-expanded-width);
@@ -141,7 +143,9 @@
   gap: var(--space-3);
 }
 
-.userInfo:hover { opacity: 0.8; }
+.userInfo:hover {
+  opacity: 0.8;
+}
 
 .userText {
   display: flex;

@@ -8,7 +8,7 @@ import toast from 'react-hot-toast';
 import styles from './Sidebar.module.css';
 import Avatar from '@/components/ui/Avatar';
 import Logo from '@/components/ui/Logo';
-import { Search, Bell, MessageSquare, Hash, Edit3, Send, LogOut } from 'lucide-react';
+import { Search, Bell, MessageSquare, Hash, Edit3, Send, LogOut, UserCircle } from 'lucide-react';
 import { useState } from 'react';
 import SearchPanel from './SearchPanel';
 import NotificationPanel from './NotificationPanel';
@@ -153,9 +153,14 @@ export default function Sidebar({ profile }: SidebarProps) {
           </button>
         </div>
       ) : (
-        <div className={styles.userFooter} style={{ justifyContent: 'center' }}>
-          <Link href="/login" className="btn btn-primary w-full">
-            Đăng nhập / Đăng ký
+        <div style={{ marginTop: 'auto', paddingBottom: 'var(--space-4)' }}>
+          <Link
+            href="/login"
+            className={styles.navItem}
+            style={{ width: '100%', color: 'var(--color-primary-light)' }}
+          >
+            <span className={styles.navIcon}><UserCircle size={26} strokeWidth={2} /></span>
+            <span className={styles.navLabel}>Đăng nhập</span>
           </Link>
         </div>
       )}
