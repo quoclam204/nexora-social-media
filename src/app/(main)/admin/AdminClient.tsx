@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Profile, Post } from '@/types';
 import Avatar from '@/components/ui/Avatar';
 import { formatDistanceToNow } from 'date-fns';
@@ -23,6 +23,15 @@ export default function AdminClient({ stats, recentPosts, recentUsers, chartData
   const [activeTab, setActiveTab] = useState<'overview' | 'analytics' | 'posts' | 'users'>('overview');
   const [posts, setPosts] = useState(recentPosts);
   const [users, setUsers] = useState(recentUsers);
+
+  // Keep state in sync with props when Next.js refreshes the router
+  useEffect(() => {
+    setPosts(recentPosts);
+  }, [recentPosts]);
+
+  useEffect(() => {
+    setUsers(recentUsers);
+  }, [recentUsers]);
 
   const deletePost = async (id: string) => {
     if (!confirm('Xóa bài viết này?')) return;
@@ -156,7 +165,7 @@ export default function AdminClient({ stats, recentPosts, recentUsers, chartData
               <h2 className={styles.sectionTitle}><FileText size={20} /> Bài viết gần đây</h2>
             </div>
             <div className={styles.list}>
-              {recentPosts.slice(0, 5).map((post: any) => (
+              {posts.slice(0, 5).map((post: any) => (
                 <div key={post.id} className={styles.listItem}>
                   <Avatar profile={post.profile} size="md" />
                   <div className={styles.itemInfo}>
@@ -183,7 +192,7 @@ export default function AdminClient({ stats, recentPosts, recentUsers, chartData
               <h2 className={styles.sectionTitle}><Users size={20} /> Người dùng mới</h2>
             </div>
             <div className={styles.list}>
-              {recentUsers.slice(0, 5).map(user => (
+              {users.slice(0, 5).map(user => (
                 <div key={user.id} className={styles.listItem}>
                   <Avatar profile={user} size="md" />
                   <div className={styles.itemInfo}>

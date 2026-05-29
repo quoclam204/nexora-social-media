@@ -8,6 +8,9 @@ export const metadata: Metadata = {
   description: 'Nexora Admin Panel',
 };
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@nexora.com';
 
 export default async function AdminPage() {
