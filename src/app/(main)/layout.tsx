@@ -11,6 +11,9 @@ export default async function MainLayout({ children }: { children: React.ReactNo
   const { data: { user } } = await supabase.auth.getUser();
 
   let profile = null;
+  const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@nexora.com';
+  const isAdmin = user?.email === ADMIN_EMAIL;
+
   if (user) {
     const { data } = await supabase
       .from('profiles')
@@ -23,11 +26,11 @@ export default async function MainLayout({ children }: { children: React.ReactNo
   return (
     <PresenceProvider>
       <div className={styles.layout}>
-        <Sidebar profile={profile} />
+        <Sidebar profile={profile} isAdmin={isAdmin} />
         <main className={styles.main}>
           {children}
         </main>
-        <MobileNav profile={profile} />
+        <MobileNav profile={profile} isAdmin={isAdmin} />
         <ChatWidget profile={profile} />
       </div>
     </PresenceProvider>

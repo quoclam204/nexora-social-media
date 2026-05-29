@@ -68,7 +68,7 @@ export default function ChatWidget({ profile }: ChatWidgetProps) {
       // Fetch friends
       const { data: following } = await supabase.from('follows').select('following_id').eq('follower_id', profile.id);
       const { data: followers } = await supabase.from('follows').select('follower_id').eq('following_id', profile.id);
-      
+
       let friendIds: string[] = [];
       if (following && followers) {
         const followingIds = following.map(f => f.following_id);
@@ -159,12 +159,12 @@ export default function ChatWidget({ profile }: ChatWidgetProps) {
     if (!profile) return;
     const { data: following } = await supabase.from('follows').select('following_id').eq('follower_id', profile.id);
     const { data: followers } = await supabase.from('follows').select('follower_id').eq('following_id', profile.id);
-    
+
     if (following && followers) {
       const followingIds = following.map(f => f.following_id);
       const followerIds = followers.map(f => f.follower_id);
       const mutualIds = followingIds.filter(id => followerIds.includes(id));
-      
+
       if (mutualIds.length > 0) {
         const { data: friendsData } = await supabase.from('profiles').select('*').in('id', mutualIds);
         if (friendsData) setFriends(friendsData);
@@ -209,7 +209,7 @@ export default function ChatWidget({ profile }: ChatWidgetProps) {
 
     if (conv.id.startsWith('mock_')) {
       const friendId = conv.participants.find(id => id !== profile!.id);
-      
+
       const { data: existingConvs } = await supabase.from('conversations')
         .select('*')
         .contains('participants', [profile!.id, friendId]);
@@ -223,7 +223,7 @@ export default function ChatWidget({ profile }: ChatWidgetProps) {
         }).select().single();
         if (newConv) actualConvId = newConv.id;
       }
-      
+
       conv = { ...conv, id: actualConvId };
     }
 
@@ -636,8 +636,8 @@ export default function ChatWidget({ profile }: ChatWidgetProps) {
                       <div className={styles.convInfo}>
                         <div className={styles.convName}>{conv.other_user?.full_name || conv.other_user?.username}</div>
                         <div className={styles.convTime}>
-                          {isOnline(conv.other_user?.id || '') 
-                            ? 'Đang hoạt động' 
+                          {isOnline(conv.other_user?.id || '')
+                            ? 'Đang hoạt động'
                             : `Hoạt động ${conv.other_user?.last_seen ? formatDistanceToNow(new Date(conv.other_user.last_seen), { locale: vi }) : 'gần đây'} trước`}
                         </div>
                       </div>
@@ -645,8 +645,8 @@ export default function ChatWidget({ profile }: ChatWidgetProps) {
                   ))}
                 </div>
               )}
-              <button 
-                className={styles.fab} 
+              <button
+                className={styles.fab}
                 onClick={() => {
                   setShowFriends(true);
                   fetchFriends();

@@ -8,13 +8,14 @@ import toast from 'react-hot-toast';
 import styles from './Sidebar.module.css';
 import Avatar from '@/components/ui/Avatar';
 import Logo from '@/components/ui/Logo';
-import { Search, Bell, MessageSquare, Hash, Edit3, Send, LogOut, UserCircle } from 'lucide-react';
+import { Search, Bell, MessageSquare, Hash, Edit3, Send, LogOut, UserCircle, Shield } from 'lucide-react';
 import { useState } from 'react';
 import SearchPanel from './SearchPanel';
 import NotificationPanel from './NotificationPanel';
 
 interface SidebarProps {
   profile: Profile | null;
+  isAdmin?: boolean;
 }
 
 function HomeIcon({ size = 22, fill, strokeWidth, ...props }: any) {
@@ -60,7 +61,7 @@ const navItems = [
   { href: '/hashtags', label: 'Hashtag', icon: Hash },
 ];
 
-export default function Sidebar({ profile }: SidebarProps) {
+export default function Sidebar({ profile, isAdmin }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
@@ -133,6 +134,22 @@ export default function Sidebar({ profile }: SidebarProps) {
 
       {/* Bottom Actions */}
       <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 'var(--space-1)', paddingBottom: 'var(--space-4)' }}>
+        {isAdmin && (
+          <Link
+            href="/admin"
+            className={`${styles.navItem} ${pathname === '/admin' ? styles.active : ''}`}
+          >
+            <span className={styles.navIcon}>
+              <Shield
+                size={26}
+                strokeWidth={pathname === '/admin' ? 2.5 : 2}
+                fill={pathname === '/admin' ? 'currentColor' : 'none'}
+              />
+            </span>
+            <span className={styles.navLabel}>Quản trị</span>
+          </Link>
+        )}
+
         {profile && (
           <Link href="/?create=true" id="btn-create-post-sidebar" className={styles.navItem}>
             <span className={styles.navIcon}><Edit3 size={26} strokeWidth={2} /></span>
