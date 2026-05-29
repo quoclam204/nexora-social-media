@@ -58,7 +58,7 @@ const navItems = [
   { href: '/search', label: 'Tìm kiếm', icon: Search },
   { href: '/notifications', label: 'Thông báo', icon: Bell },
   { href: '/messages', label: 'Tin nhắn', icon: Send },
-  { href: '/hashtags', label: 'Hashtag', icon: Hash },
+  // { href: '/hashtags', label: 'Hashtag', icon: Hash },
 ];
 
 export default function Sidebar({ profile, isAdmin }: SidebarProps) {
