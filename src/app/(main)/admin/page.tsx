@@ -31,19 +31,42 @@ export default async function AdminPage() {
     { count: reportsCount },
     { data: recentPosts },
     { data: recentUsers },
+    { data: allUsersDates },
+    { data: allPostsDates }
   ] = await Promise.all([
     supabaseAdmin.from('profiles').select('*', { count: 'exact', head: true }),
     supabaseAdmin.from('posts').select('*', { count: 'exact', head: true }),
     supabaseAdmin.from('reports').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
     supabaseAdmin.from('posts').select('*, profile:profiles(*)').order('created_at', { ascending: false }).limit(10),
     supabaseAdmin.from('profiles').select('*').order('created_at', { ascending: false }).limit(10),
+    supabaseAdmin.from('profiles').select('created_at').order('created_at', { ascending: false }).limit(1000),
+    supabaseAdmin.from('posts').select('created_at').order('created_at', { ascending: false }).limit(1000),
   ]);
+
+  const last7Days = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    return d.toISOString().split('T')[0];
+  }).reverse();
+
+  const chartData = last7Days.map(dateStr => {
+    const usersOnDate = allUsersDates?.filter(u => u.created_at.startsWith(dateStr)).length || 0;
+    const postsOnDate = allPostsDates?.filter(p => p.created_at.startsWith(dateStr)).length || 0;
+    // Format to dd/MM
+    const [year, month, day] = dateStr.split('-');
+    return {
+      date: `${day}/${month}`,
+      users: usersOnDate,
+      posts: postsOnDate,
+    };
+  });
 
   return (
     <AdminClient
       stats={{ usersCount: usersCount ?? 0, postsCount: postsCount ?? 0, reportsCount: reportsCount ?? 0 }}
       recentPosts={recentPosts ?? []}
       recentUsers={recentUsers ?? []}
+      chartData={chartData}
     />
   );
 }

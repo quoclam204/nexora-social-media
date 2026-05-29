@@ -23,7 +23,22 @@ export async function deletePostAction(postId: string) {
     const { error } = await supabaseAdmin.from('posts').delete().eq('id', postId);
     if (error) throw error;
     
-    revalidatePath('/admin');
+    revalidatePath('/', 'layout');
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function toggleHidePostAction(postId: string, isHidden: boolean) {
+  try {
+    await checkAdmin();
+    const supabaseAdmin = await createAdminClient();
+    
+    const { error } = await supabaseAdmin.from('posts').update({ privacy: isHidden ? 'private' : 'public' }).eq('id', postId);
+    if (error) throw error;
+    
+    revalidatePath('/', 'layout'); // Xóa toàn bộ cache ứng dụng
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message };
@@ -39,7 +54,7 @@ export async function deleteUserAction(userId: string) {
     const { error } = await supabaseAdmin.from('profiles').delete().eq('id', userId);
     if (error) throw error;
     
-    revalidatePath('/admin');
+    revalidatePath('/', 'layout');
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message };
