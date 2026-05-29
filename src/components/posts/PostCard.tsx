@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -24,7 +24,7 @@ interface PostCardProps {
   style?: React.CSSProperties;
 }
 
-export default function PostCard({ post, currentProfile, onDeleted, style }: PostCardProps) {
+const PostCard = ({ post, currentProfile, onDeleted, style }: PostCardProps) => {
   const router = useRouter();
   const [reactions, setReactions] = useState(post.reactions_count ?? 0);
   const [userReaction, setUserReaction] = useState<ReactionType | null>(
@@ -319,4 +319,11 @@ export default function PostCard({ post, currentProfile, onDeleted, style }: Pos
       )}
     </article>
   );
-}
+};
+
+export default React.memo(PostCard, (prevProps, nextProps) => {
+  return prevProps.post.id === nextProps.post.id &&
+         prevProps.post.comments_count === nextProps.post.comments_count &&
+         prevProps.post.reactions_count === nextProps.post.reactions_count &&
+         prevProps.currentProfile?.id === nextProps.currentProfile?.id;
+});

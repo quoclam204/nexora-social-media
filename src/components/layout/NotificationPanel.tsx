@@ -19,6 +19,7 @@ interface NotificationPanelProps {
 export default function NotificationPanel({ isOpen, onClose, profile }: NotificationPanelProps) {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<'all' | 'unread'>('all');
   const supabase = createClient();
 
   useEffect(() => {
@@ -31,20 +32,49 @@ export default function NotificationPanel({ isOpen, onClose, profile }: Notifica
     if (!profile) return;
     setLoading(true);
     
-    // Fetch notifications (assuming you have a notifications table or similar logic)
-    // Since notifications might not be fully implemented in DB, we'll fetch them if they exist
-    // or show an empty state for now.
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('notifications')
       .select('*, sender:profiles!notifications_actor_id_fkey(*)')
       .eq('user_id', profile.id)
       .order('created_at', { ascending: false })
       .limit(20);
       
+    if (error) {
+      console.error('Error fetching notifications:', error);
+    }
+      
     if (data) {
-      setNotifications(data);
+      const sortedData = [...data].sort((a, b) => {
+        if (a.read === b.read) {
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        }
+        return a.read ? 1 : -1;
+      });
+      setNotifications(sortedData);
     }
     setLoading(false);
+  };
+
+  const markAsRead = async (id: string, isRead: boolean) => {
+    if (isRead) return;
+
+    // Optimistically update local state
+    setNotifications(prev => {
+      const updated = prev.map(n => n.id === id ? { ...n, read: true } : n);
+      // Re-sort so that read notifications move down
+      return updated.sort((a, b) => {
+        if (a.read === b.read) {
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        }
+        return a.read ? 1 : -1;
+      });
+    });
+
+    // Update in database
+    await supabase
+      .from('notifications')
+      .update({ read: true })
+      .eq('id', id);
   };
 
   const formatTime = (dateString: string) => {
@@ -65,8 +95,18 @@ export default function NotificationPanel({ isOpen, onClose, profile }: Notifica
         </div>
 
         <div className={styles.filters}>
-          <button className={`${styles.filterPill} ${styles.active}`}>Tất cả</button>
-          <button className={styles.filterPill}>Chưa đọc</button>
+          <button 
+            className={`${styles.filterPill} ${activeTab === 'all' ? styles.active : ''}`}
+            onClick={() => setActiveTab('all')}
+          >
+            Tất cả
+          </button>
+          <button 
+            className={`${styles.filterPill} ${activeTab === 'unread' ? styles.active : ''}`}
+            onClick={() => setActiveTab('unread')}
+          >
+            Chưa đọc
+          </button>
         </div>
 
         <div className={styles.sectionHeader}>
@@ -79,14 +119,14 @@ export default function NotificationPanel({ isOpen, onClose, profile }: Notifica
             <div style={{ display: 'flex', justifyContent: 'center', padding: '32px' }}>
               <div className="animate-spin" style={{ width: 24, height: 24, border: '2px solid var(--border-default)', borderTopColor: 'var(--color-primary)', borderRadius: '50%' }} />
             </div>
-          ) : notifications.length === 0 ? (
+          ) : notifications.filter(n => activeTab === 'all' || !n.is_read).length === 0 ? (
             <div className={styles.emptyState}>
               <Bell size={48} strokeWidth={1.5} />
               <p>Chưa có thông báo nào.</p>
             </div>
           ) : (
             <div className={styles.notificationList}>
-              {notifications.map((notif) => {
+              {notifications.filter(n => activeTab === 'all' || !n.read).map((notif) => {
                 let IconComponent = Heart;
                 let iconClass = styles.iconLike;
                 
@@ -102,8 +142,11 @@ export default function NotificationPanel({ isOpen, onClose, profile }: Notifica
                   <Link
                     key={notif.id}
                     href={notif.post_id ? `/posts/${notif.post_id}` : `/profile/${notif.sender?.username}`}
-                    className={`${styles.notificationItem} ${!notif.is_read ? styles.unread : ''}`}
-                    onClick={onClose}
+                    className={`${styles.notificationItem} ${!notif.read ? styles.unread : ''}`}
+                    onClick={() => {
+                      markAsRead(notif.id, notif.read);
+                      onClose();
+                    }}
                   >
                     <div className={styles.avatarWrapper}>
                       <Avatar profile={notif.sender} size="lg" />
@@ -125,7 +168,7 @@ export default function NotificationPanel({ isOpen, onClose, profile }: Notifica
                       </div>
                     </div>
                     
-                    {!notif.is_read && <div className={styles.unreadDot} />}
+                    {!notif.read && <div className={styles.unreadDot} />}
                   </Link>
                 );
               })}

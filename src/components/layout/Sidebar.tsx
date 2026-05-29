@@ -9,7 +9,7 @@ import styles from './Sidebar.module.css';
 import Avatar from '@/components/ui/Avatar';
 import Logo from '@/components/ui/Logo';
 import { Search, Bell, MessageSquare, Hash, Edit3, Send, LogOut, UserCircle, Shield } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import SearchPanel from './SearchPanel';
 import NotificationPanel from './NotificationPanel';
 
@@ -67,8 +67,50 @@ export default function Sidebar({ profile, isAdmin }: SidebarProps) {
   const supabase = createClient();
   const [showSearchPanel, setShowSearchPanel] = useState(false);
   const [showNotificationPanel, setShowNotificationPanel] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [hideBadge, setHideBadge] = useState(false);
 
   const isPanelOpen = showSearchPanel || showNotificationPanel;
+
+  useEffect(() => {
+    if (!profile) return;
+
+    const fetchUnreadCount = async () => {
+      const lastSeenStr = localStorage.getItem('last_seen_notifications');
+      let query = supabase
+        .from('notifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', profile.id);
+
+      if (lastSeenStr) {
+        query = query.gt('created_at', lastSeenStr);
+      } else {
+        query = query.eq('read', false);
+      }
+
+      const { count } = await query;
+      
+      if (count !== null) setUnreadCount(count);
+    };
+
+    fetchUnreadCount();
+
+    const channel = supabase
+      .channel('sidebar-notifications')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${profile.id}` },
+        () => {
+          setUnreadCount((prev) => prev + 1);
+          setHideBadge(false); // Show badge again on new notification
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [profile, supabase]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -102,8 +144,17 @@ export default function Sidebar({ profile, isAdmin }: SidebarProps) {
                   setShowNotificationPanel(false);
                 } else if (item.href === '/notifications' && profile) {
                   e.preventDefault();
-                  setShowNotificationPanel(true);
-                  setShowSearchPanel(false);
+                  if (item.label === 'Thông báo') {
+                    if (showSearchPanel) setShowSearchPanel(false);
+                    const willOpen = !showNotificationPanel;
+                    setShowNotificationPanel(willOpen);
+                    if (willOpen) {
+                      setHideBadge(true);
+                      setUnreadCount(0);
+                      localStorage.setItem('last_seen_notifications', new Date().toISOString());
+                    }
+                    return;
+                  }
                 }
               }}
             >
@@ -113,6 +164,9 @@ export default function Sidebar({ profile, isAdmin }: SidebarProps) {
                   strokeWidth={isActive ? 2.5 : 2}
                   fill={isActive && (item.href === '/' || item.href === '/notifications') ? 'currentColor' : 'none'}
                 />
+                {item.href === '/notifications' && unreadCount > 0 && !hideBadge && (
+                  <span className={styles.badge}>{unreadCount > 99 ? '99+' : unreadCount}</span>
+                )}
               </span>
               <span className={styles.navLabel}>{item.label}</span>
             </Link>

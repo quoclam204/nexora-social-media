@@ -112,7 +112,6 @@ export default function CommentsSection({ postId, currentProfile, onCountChange 
       .order('created_at', { ascending: true });
 
     if (data) {
-      // Fetch replies for each comment
       const withReplies = await Promise.all(
         data.map(async (comment) => {
           const { data: replies } = await supabase
@@ -131,15 +130,25 @@ export default function CommentsSection({ postId, currentProfile, onCountChange 
   };
 
   useEffect(() => {
+    let isMounted = true;
+    
+    // Initial fetch
     fetchComments();
+
     const channel = supabase
       .channel(`comments:${postId}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'comments', filter: `post_id=eq.${postId}` },
-        () => fetchComments())
+        () => {
+          if (isMounted) fetchComments();
+        })
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+
+    return () => {
+      isMounted = false;
+      supabase.removeChannel(channel);
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [postId]);
+  }, [postId, supabase]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

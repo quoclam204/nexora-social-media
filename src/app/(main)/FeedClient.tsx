@@ -123,9 +123,9 @@ export default function FeedClient({ currentProfile }: FeedClientProps) {
     fetchPosts(true);
   };
 
-  const handlePostDeleted = (postId: string) => {
+  const handlePostDeleted = useCallback((postId: string) => {
     setPosts(prev => prev.filter(p => p.id !== postId));
-  };
+  }, []);
 
   return (
     <div className={styles.feedWrapper}>
