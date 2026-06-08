@@ -72,6 +72,26 @@ Mở [http://localhost:3000](http://localhost:3000)
 
 ---
 
+## 📸 Một số giao diện điển hình
+
+### 1) Giao diện trang Login
+
+![Login UI](https://placehold.co/1400x900/111827/ffffff?text=Nexora+Login+UI)
+
+### 2) Giao diện trang chủ
+
+![Home UI](https://placehold.co/1400x900/0f172a/e2e8f0?text=Nexora+Home+Feed+UI)
+
+### 3) Giao diện hồ sơ cá nhân
+
+![Profile UI](https://placehold.co/1400x900/1e293b/f8fafc?text=Nexora+Profile+UI)
+
+### 4) Giao diện tạo bài viết
+
+![Create Post UI](https://placehold.co/1400x900/1f2937/ffffff?text=Nexora+Create+Post+UI)
+
+---
+
 ## 📁 Cấu trúc Project
 
 ```
