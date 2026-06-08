@@ -76,19 +76,19 @@ Mở [http://localhost:3000](http://localhost:3000)
 
 ### 1) Giao diện trang Login
 
-![Login UI](https://placehold.co/1400x900/111827/ffffff?text=Nexora+Login+UI)
+<img width="608" height="314" alt="Image" src="https://github.com/user-attachments/assets/96935df7-b6d5-49d6-a7bb-924828d4bfae" />
 
 ### 2) Giao diện trang chủ
 
-![Home UI](https://placehold.co/1400x900/0f172a/e2e8f0?text=Nexora+Home+Feed+UI)
+<img width="608" height="315" alt="Image" src="https://github.com/user-attachments/assets/35b17f04-dd77-4435-a3d1-393f981a8908" />
 
 ### 3) Giao diện hồ sơ cá nhân
 
-![Profile UI](https://placehold.co/1400x900/1e293b/f8fafc?text=Nexora+Profile+UI)
+<img width="608" height="314" alt="Image" src="https://github.com/user-attachments/assets/823a6574-d6ce-414f-b358-fbef7cbf4d1f" />
 
 ### 4) Giao diện tạo bài viết
 
-![Create Post UI](https://placehold.co/1400x900/1f2937/ffffff?text=Nexora+Create+Post+UI)
+<img width="608" height="299" alt="Image" src="https://github.com/user-attachments/assets/21190704-4828-4afa-8c14-c80d8fff7693" />
 
 ---
 
